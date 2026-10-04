@@ -223,6 +223,8 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   input,select,textarea{font-size:16px}
 }
 
+.ico{width:15px;height:15px;vertical-align:-3px;margin-right:5px;color:var(--amber);flex:none}
+.flag .ico{width:11px;height:11px;margin-right:3px;vertical-align:-2px}
 /* ---- Round 2: sky rail, compact cards, six day grid ---- */
 .flag.r1{top:13px}.flag.r1::after{height:20px}
 .flag.r2{top:26px}.flag.r2::after{height:7px}
@@ -425,11 +427,15 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
     morning:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.6" fill="#f2c14e"/></svg>',
     noon:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.4" fill="#ffe28a"/><g stroke="#ffe28a" stroke-width="1.3" stroke-linecap="round"><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3"/></g></svg>',
     afternoon:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.6" fill="#f5b04a"/><g stroke="#f5b04a" stroke-width="1.2" stroke-linecap="round"><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6"/></g></svg>'};
+  const ICON={plane:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 13.5 21 6l-3.5 13-5-4.5-3 3v-5.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    car:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4l2-5h12l2 5v4zM4 16v2h3v-2M17 16v2h3v-2M4 12h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7.5" cy="14" r="1" fill="currentColor"/><circle cx="16.5" cy="14" r="1" fill="currentColor"/></svg>',
+    bag:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 7V4h6v3M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>'};
+  function iconFor(s){ const n=String(s.stop||""); if(/\b(fly|land|flight)\b/i.test(n)) return ICON.plane; if(/waymo|drive|uber|lyft/i.test(n)) return ICON.car; if(/security|check in/i.test(n)) return ICON.bag; return ""; }
   const dayStops=()=>stops.filter(s=>stopDay(s)===curDay);
   function pickDay(){ const days=tripDays(); const saved=local.get("day",null); const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/New_York"});
     curDay=days.includes(curDay)?curDay:days.includes(saved)?saved:days.includes(today)?today:settings.parkDay; }
   const THEMES={
-    "2026-10-07":{eye:"Phoenix to Tampa · <b>Red eye</b>",title:"Wheels <span>up</span>",lede:"Travel day. Pack, get to PHX early, and sleep on the plane.",c:"#5fb4f2",dim:"#24557a",soft:"rgba(95,180,242,.12)"},
+    "2026-10-07":{eye:"Phoenix to Tampa · <b>Red eye</b>",title:"Wheels <span>up</span>",lede:"Travel day. Pack, get to PHX early, and sleep on the plane. Times today are Arizona time.",c:"#5fb4f2",dim:"#24557a",soft:"rgba(95,180,242,.12)"},
     "2026-10-08":{eye:"Lutz · <b>Landing day</b>",title:"Recovery <span>day</span>",lede:"Land, crash, recharge. Nothing on the books but rest and good food.",c:"#7fd6a8",dim:"#2f6b52",soft:"rgba(127,214,168,.12)"},
     "2026-10-10":{eye:"Tampa · <b>Ybor City</b>",title:"Night <span>out</span>",lede:"Party day. Drinks, shows and a late night in Ybor.",c:"#ff4fa3",dim:"#7a2450",soft:"rgba(255,79,163,.12)"},
     "2026-10-11":{eye:"Lutz · <b>Slow Sunday</b>",title:"Easy <span>Sunday</span>",lede:"Sleep in, nurse the night before, and take it easy.",c:"#b58cf0",dim:"#4f3b78",soft:"rgba(181,140,240,.12)"},
@@ -485,25 +491,26 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       const more=[["Window",s.win,""],["Allow",s.allow,""],["Cost",s.cost,""],["Drink",s.drink,"drink"],["Notes",s.notes,""]].filter(x=>x[1]);
       return '<li class="scard'+(done[key]?' done':'')+(s.fixed?' fixed':'')+'" data-id="'+esc(key)+'">'+
         '<div class="sky" style="--c1:'+SKY[ph]+';--c2:'+SKY[ph2]+'" title="'+ph+'"><i>'+SKY_ICON[ph]+'</i></div>'+
-        '<details><summary><span class="when">'+clock(s.s).replace(" ","&nbsp;")+(s.fixed?'<b>FIXED</b>':'')+'</span>'+
-        '<span class="nm"><span class="stop">'+esc(s.stop)+'</span><span class="sub">'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+(s.drink?'<span class="dk">'+esc((s.drink.split(" · ").find(x=>!/^[0-9~$]/.test(x.trim()))||s.drink).slice(0,30))+'</span>':(s.area?'<span>'+esc(s.area)+'</span>':''))+'</span></span></summary>'+
+        '<details><summary><span class="when">'+(s.tlabel?esc(s.tlabel):clock(s.s).replace(" ","&nbsp;"))+(s.fixed?'<b>FIXED</b>':'')+'</span>'+
+        '<span class="nm"><span class="stop">'+iconFor(s)+esc(s.stop)+'</span><span class="sub">'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+(s.drink?'<span class="dk">'+esc((s.drink.split(" · ").find(x=>!/^[0-9~$]/.test(x.trim()))||s.drink).slice(0,30))+'</span>':(s.area?'<span>'+esc(s.area)+'</span>':''))+'</span></span></summary>'+
         '<dl>'+more.map(x=>'<dt>'+x[0]+'</dt><dd class="'+x[2]+'">'+esc(x[1])+'</dd>').join("")+'</dl><div class="actions edit-only"><button type="button" data-edit="stops" data-id="'+esc(key)+'">Edit this stop</button></div></details>'+
         '<label class="chk"><input type="checkbox" aria-label="Mark '+esc(s.stop)+' done"'+(done[key]?" checked":"")+'></label></li>';
     }).join("");
     applyWriteState();
   }
 
-  function T0(){const l=dayStops();return l.length?Math.min(...l.map(s=>s.s)):420}
-  function T1(){const l=dayStops();return Math.max(T0()+600, ...l.map(s=>s.s+(s.d||30)))}
+  function T0(){const l=dayStops(); if(!l.length) return 420; return Math.max(0,Math.floor((Math.min(...l.map(s=>s.s))-30)/60)*60);}
+  function T1(){const l=dayStops(), a=T0(); if(!l.length) return 1020; return Math.min(1440,Math.max(a+240,Math.ceil((Math.max(...l.map(s=>s.s+(s.d||30)))+30)/60)*60));}
   function renderTrack(){
     const tl=document.querySelector(".timeline"); if(tl) tl.hidden=dayStops().length===0;
     const a0=T0(), a1=T1(), pct=m=>((m-a0)/(a1-a0)*100);
     const sk=[]; for(let m=a0;m<=a1;m+=30) sk.push(SKY[phase(m,curDay)]+' '+pct(m).toFixed(1)+'%');
     let html='<div class="rail sky-rail" style="background:linear-gradient(90deg,'+sk.join(",")+')"></div>';
     dayStops().forEach(s=>{const a=s.s,b=s.s+(s.d||30); html+='<div class="seg '+esc(s.kind||"free")+(s.fixed?" fixed":"")+'" style="left:'+pct(a)+'%;width:'+Math.max(.4,pct(b)-pct(a))+'%" title="'+esc(s.stop)+'"></div>';});
-    for(let m=Math.ceil(a0/120)*120;m<=a1;m+=120) html+='<span class="tick" style="left:'+pct(m)+'%">'+clock(m).replace(":00","")+'</span>';
+    const stp=(a1-a0)<=360?60:120;
+    for(let m=Math.ceil(a0/stp)*stp;m<=a1;m+=stp) html+='<span class="tick" style="left:'+pct(m)+'%">'+clock(m).replace(":00","")+'</span>';
     let row=0;
-    dayStops().forEach(s=>{ if(["ride","food","show"].includes(s.kind)||s.fixed||curDay!==settings.parkDay){ const lbl=s.short||String(s.stop||"").slice(0,14); html+='<span class="flag r'+row+(s.fixed?" fixed":"")+'" style="left:'+pct(s.s+(s.d||30)/2)+'%">'+esc(lbl)+'</span>'; row=(row+1)%3; } });
+    dayStops().forEach(s=>{ if(["ride","food","show"].includes(s.kind)||s.fixed||curDay!==settings.parkDay){ const lbl=s.short||String(s.stop||"").slice(0,14); html+='<span class="flag r'+row+(s.fixed?" fixed":"")+'" style="left:'+pct(s.s+Math.min(s.d||30,a1-s.s)/2)+'%">'+iconFor(s)+esc(lbl)+'</span>'; row=(row+1)%3; } });
     html+='<div class="nowline" id="nowline" hidden></div>';
     $("track").innerHTML=html;
   }
@@ -739,6 +746,15 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       b.set(db.collection("stops").doc("d12-drive"),{"day": "2026-10-12", "s": 950, "order": 950, "d": 40, "stop": "Drive to Tampa airport", "area": "Lutz to Tampa airport", "acc": "drive", "kind": "drive", "win": "About 3:50 PM", "allow": "About 25 to 40 min", "cost": "", "drink": "", "notes": "Leave extra time for Monday afternoon traffic. Aim to be at the airport by 4:30 PM.", "short": "To TPA", "fixed": false},{merge:true});
       b.set(db.doc("settings/trip"),{mig4:true},{merge:true});
       await b.commit(); } }catch(e){}
+    try{ const t=await db.doc("settings/trip").get(); if(t.exists&&!t.data().mig5){
+      const b=db.batch();
+      b.set(db.collection("stops").doc("d07-waymo"),{"day": "2026-10-07", "s": 1190, "order": 1190, "d": 25, "stop": "Waymo to Phoenix Sky Harbor", "area": "Home to PHX", "acc": "drive", "kind": "drive", "win": "About 7:50 PM", "allow": "About 20 min", "cost": "", "drink": "", "notes": "Book it in the Waymo app a little early. American flies out of Terminal 4, so set drop off there.", "short": "Waymo", "fixed": false},{merge:true});
+      b.set(db.collection("stops").doc("d07-air"),{"day": "2026-10-07", "s": 1215, "order": 1215, "d": 110, "stop": "Check in and security", "area": "PHX Terminal 4", "acc": "free", "kind": "free", "win": "About 8:15 PM", "allow": "About 30 min", "cost": "", "drink": "", "notes": "Grab food after security. Boarding starts around 9:35 PM.", "short": "Security", "fixed": false},{merge:true});
+      b.set(db.collection("stops").doc("d07-fly"),{"s": 1325, "order": 1325, "d": 115, "win": "10:05 PM", "allow": "About 4 hr", "notes": "American AA 3260, red eye. Lands in Tampa at 5:00 AM Thursday, Orlando time. Check in on the American app 24 hours before."},{merge:true});
+      b.set(db.collection("stops").doc("d12-fly"),{"d": 280, "allow": "About 4 hr 40 min"},{merge:true});
+      b.set(db.collection("stops").doc("d12-land"),{"tlabel": "7:44 PM AZ"},{merge:true});
+      b.set(db.doc("settings/trip"),{mig5:true},{merge:true});
+      await b.commit(); } }catch(e){}
     // Changes queued by Claude in changes.json are applied once, the first time anyone opens the site after they land
     try{
       const res=await fetch("changes.json?ts="+Date.now(),{cache:"no-store"}); const queue=res.ok?await res.json():[];
@@ -747,7 +763,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       if(todo.length){
         const snap=async col=>(await db.collection(col).get()).docs.map(x=>Object.assign({_id:x.id},x.data()));
         const live={stops:await snap("stops"),costs:await snap("costs"),flights:await snap("flights")}, sugg=await snap("suggestions");
-        const OK={stops:["day","stop","s","d","win","area","acc","kind","allow","cost","drink","notes","short"],costs:["label","price","priceMax","perPerson","taxed"],flights:["airline","flight","from","to","depart","arrive","fromTz","toTz","who","notes"]};
+        const OK={stops:["day","stop","s","d","win","area","acc","kind","allow","cost","drink","notes","short","tlabel"],costs:["label","price","priceMax","perPerson","taxed"],flights:["airline","flight","from","to","depart","arrive","fromTz","toTz","who","notes"]};
         const clean=(col,f)=>{const o={};(OK[col]||[]).forEach(k=>{ if(f&&f[k]!==undefined) o[k]=(typeof f[k]==="string")?f[k].slice(0,300):f[k]; }); if(col==="stops"&&o.s!==undefined){o.s=Math.max(0,Math.min(1439,Math.round(+o.s||0)));o.order=o.s;} if(col==="costs"&&o.price!==undefined) o.price=+o.price||0; return o;};
         const locked=x=>x&&(x.fixed||/^drive home$/i.test(String(x.stop||"").trim()));
         const find=(col,op)=>{ const list=live[col]||[]; if(op.id) return list.find(x=>x._id===op.id); const m=op.match||{}; const key=String(m.stop||m.label||"").toLowerCase(); if(!key) return null;
