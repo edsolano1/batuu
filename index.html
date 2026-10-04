@@ -713,6 +713,14 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       b.set(db.collection("stops").doc("d12-land"),{"day": "2026-10-12", "s": 1364, "order": 1364, "d": 30, "stop": "Land in Phoenix", "area": "PHX", "acc": "drive", "kind": "drive", "win": "7:44 PM Arizona time", "allow": "", "cost": "", "drink": "", "notes": "AA 1402 arrives. Home sweet home.", "short": "Land PHX", "fixed": false},{merge:true});
       b.set(db.doc("settings/trip"),{mig3:true},{merge:true});
       await b.commit(); } }catch(e){}
+    try{ const t=await db.doc("settings/trip").get(); if(t.exists&&!t.data().mig4){
+      const b=db.batch();
+      b.set(db.collection("stops").doc("d08-land"),{"notes": "AA 3260 from Phoenix arrives. Grab your bags and head out."},{merge:true});
+      b.set(db.collection("stops").doc("d08-drive"),{"day": "2026-10-08", "s": 330, "order": 330, "d": 30, "stop": "Drive to Lutz", "area": "Tampa airport to Lutz", "acc": "drive", "kind": "drive", "win": "About 5:30 AM", "allow": "About 25 min", "cost": "", "drink": "", "notes": "North Tampa, an easy early morning drive. Sleep off the red eye when you get there.", "short": "To Lutz", "fixed": false},{merge:true});
+      b.set(db.collection("stops").doc("b01"),{"stop": "Drive from Lutz to Hollywood Studios", "area": "Lutz to Disney", "allow": "About 1 hr 30 min"},{merge:true});
+      b.set(db.collection("stops").doc("d12-drive"),{"day": "2026-10-12", "s": 950, "order": 950, "d": 40, "stop": "Drive to Tampa airport", "area": "Lutz to Tampa airport", "acc": "drive", "kind": "drive", "win": "About 3:50 PM", "allow": "About 25 to 40 min", "cost": "", "drink": "", "notes": "Leave extra time for Monday afternoon traffic. Aim to be at the airport by 4:30 PM.", "short": "To TPA", "fixed": false},{merge:true});
+      b.set(db.doc("settings/trip"),{mig4:true},{merge:true});
+      await b.commit(); } }catch(e){}
     // Changes queued by Claude in changes.json are applied once, the first time anyone opens the site after they land
     try{
       const res=await fetch("changes.json?ts="+Date.now(),{cache:"no-store"}); const queue=res.ok?await res.json():[];
