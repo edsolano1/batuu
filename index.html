@@ -223,20 +223,6 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   input,select,textarea{font-size:16px}
 }
 
-
-.sunrow{display:grid;grid-template-columns:22px 1fr;align-items:center;min-height:30px;position:relative}
-.sunrow .sky{position:relative;height:100%;min-height:30px}
-.sunrow .sky::before{content:"";position:absolute;left:10px;top:0;bottom:0;width:2px;background:linear-gradient(var(--c1),var(--c2))}
-.sunrow .sky i{position:absolute;left:3px;top:50%;transform:translateY(-50%);width:16px;height:16px;background:var(--bg);border-radius:50%;display:grid;place-items:center}
-.sunrow .sky svg{width:14px;height:14px}
-.sunlbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding-left:10px;display:flex;align-items:center;gap:8px}
-.sunlbl::after{content:"";flex:1;height:1px;background:currentColor;opacity:.25}
-.sunrow:first-child .sky::before{top:50%}
-.sunrow:last-child .sky::before{bottom:50%}
-.track{height:112px}
-.sunmark{position:absolute;top:84px;transform:translateX(-50%);font-family:var(--f-mono);font-size:10px;white-space:nowrap;display:flex;align-items:center;gap:3px}
-.sunmark i{display:grid;width:12px;height:12px}.sunmark svg{width:12px;height:12px}
-.sunmark::before{content:"";position:absolute;left:50%;top:-34px;width:1px;height:30px;background:currentColor;opacity:.35}
 /* ---- Round 2: sky rail, compact cards, six day grid ---- */
 .flag.r1{top:13px}.flag.r1::after{height:20px}
 .flag.r2{top:26px}.flag.r2::after{height:7px}
@@ -281,8 +267,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   .timeline{padding:12px 10px 10px;gap:6px}
   .timeline .sec-head .eyebrow{display:none}
   .timeline h2{font-size:15px}
-  .track{min-width:0;height:104px}
-  .sunmark{top:80px;font-size:9px}
+  .track{min-width:0;height:86px}
   .track-scroll{overflow:visible}
   .flag{font-size:9px}
   .track .tick{font-size:9.5px}
@@ -478,20 +463,16 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
         '<td>'+esc(s.allow)+'</td><td class="cost">'+esc(s.cost)+'</td><td class="drink">'+esc(s.drink)+'</td><td class="notes">'+esc(s.notes)+'</td>'+
         '<td class="edit-only"><button type="button" class="small" data-edit="stops" data-id="'+esc(key)+'">Edit</button></td></tr>';
     }).join("");
-    const items=list.map((s,ix)=>{
+    $("cardList").innerHTML=list.map((s,ix)=>{
       const a=ACCESS[s.acc]||["",""], key=s._id, next=list[ix+1], ph=phase(s.s,curDay), ph2=next?phase(next.s,curDay):ph;
       const more=[["Window",s.win,""],["Allow",s.allow,""],["Cost",s.cost,""],["Drink",s.drink,"drink"],["Notes",s.notes,""]].filter(x=>x[1]);
-      return {t:s.s,h:'<li class="scard'+(done[key]?' done':'')+(s.fixed?' fixed':'')+'" data-id="'+esc(key)+'">'+
+      return '<li class="scard'+(done[key]?' done':'')+(s.fixed?' fixed':'')+'" data-id="'+esc(key)+'">'+
         '<div class="sky" style="--c1:'+SKY[ph]+';--c2:'+SKY[ph2]+'" title="'+ph+'"><i>'+SKY_ICON[ph]+'</i></div>'+
         '<details><summary><span class="when">'+clock(s.s).replace(" ","&nbsp;")+(s.fixed?'<b>FIXED</b>':'')+'</span>'+
         '<span class="nm"><span class="stop">'+esc(s.stop)+'</span><span class="sub">'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+(s.drink?'<span class="dk">'+esc((s.drink.split(" · ").find(x=>!/^[0-9~$]/.test(x.trim()))||s.drink).slice(0,30))+'</span>':(s.area?'<span>'+esc(s.area)+'</span>':''))+'</span></span></summary>'+
         '<dl>'+more.map(x=>'<dt>'+x[0]+'</dt><dd class="'+x[2]+'">'+esc(x[1])+'</dd>').join("")+'</dl><div class="actions edit-only"><button type="button" data-edit="stops" data-id="'+esc(key)+'">Edit this stop</button></div></details>'+
-        '<label class="chk"><input type="checkbox" aria-label="Mark '+esc(s.stop)+' done"'+(done[key]?" checked":"")+'></label></li>'};
-    });
-    if(list.length){ const st=sunTimes(curDay);
-      [[st.rise,"Sunrise","dawn"],[st.set,"Sunset","dusk"]].forEach(([t,lbl,ph])=>items.push({t:t-0.5,h:'<li class="sunrow"><div class="sky" style="--c1:'+SKY[ph]+';--c2:'+SKY[ph]+'"><i>'+SKY_ICON[ph]+'</i></div><span class="sunlbl" style="color:'+SKY[ph]+'">'+lbl+' · '+clock(t)+'</span></li>'})); }
-    items.sort((a,b)=>a.t-b.t);
-    $("cardList").innerHTML=items.map(x=>x.h).join("");
+        '<label class="chk"><input type="checkbox" aria-label="Mark '+esc(s.stop)+' done"'+(done[key]?" checked":"")+'></label></li>';
+    }).join("");
     applyWriteState();
   }
 
@@ -505,7 +486,6 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
     for(let m=Math.ceil(a0/120)*120;m<=a1;m+=120) html+='<span class="tick" style="left:'+pct(m)+'%">'+clock(m).replace(":00","")+'</span>';
     let row=0;
     dayStops().forEach(s=>{ if(["ride","food","show"].includes(s.kind)||s.fixed){ const lbl=s.short||String(s.stop||"").slice(0,14); html+='<span class="flag r'+row+(s.fixed?" fixed":"")+'" style="left:'+pct(s.s+(s.d||30)/2)+'%">'+esc(lbl)+'</span>'; row=(row+1)%3; } });
-    { const st=sunTimes(curDay); [[st.rise,"Sunrise","dawn"],[st.set,"Sunset","dusk"]].forEach(([t,lbl,ph])=>{ if(t>=a0&&t<=a1) html+='<span class="sunmark" style="left:'+pct(t)+'%;color:'+SKY[ph]+'"><i>'+SKY_ICON[ph]+'</i>'+lbl+' '+clock(t).replace(" AM","a").replace(" PM","p")+'</span>'; }); }
     html+='<div class="nowline" id="nowline" hidden></div>';
     $("track").innerHTML=html;
   }
@@ -724,6 +704,14 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       b.set(db.collection("stops").doc("b09b"),{"day": "2026-10-09", "s": 975, "order": 975, "d": 40, "stop": "Indiana Jones Epic Stunt Spectacular", "area": "Echo Lake", "acc": "show", "kind": "show", "win": "Afternoon", "allow": "30 min show", "cost": "Included", "drink": "", "notes": "Live stunt show with explosions. Check showtimes in the app. Good shady sit down break.", "short": "Indy show", "fixed": false},{merge:true});
       b.delete(db.collection("costs").doc("c3"));
       b.set(db.doc("settings/trip"),{mig2:true},{merge:true});
+      await b.commit(); } }catch(e){}
+    try{ const t=await db.doc("settings/trip").get(); if(t.exists&&!t.data().mig3){
+      const b=db.batch();
+      b.set(db.collection("stops").doc("d07-fly"),{"day": "2026-10-07", "s": 1325, "order": 1325, "d": 60, "stop": "Fly out of Phoenix", "area": "PHX to TPA", "acc": "drive", "kind": "drive", "win": "10:05 PM Arizona time", "allow": "Be at PHX by 8:30 PM AZ", "cost": "", "drink": "", "notes": "American AA 3260, red eye. Lands in Tampa at 5:00 AM Thursday. Check in on the American app 24 hours before.", "short": "Fly out", "fixed": false},{merge:true});
+      b.set(db.collection("stops").doc("d08-land"),{"stop": "Land in Tampa", "win": "5:00 AM", "notes": "American AA 3260 from Phoenix arrives. Coffee, then crash.", "short": "Land"},{merge:true});
+      b.set(db.collection("stops").doc("d12-fly"),{"stop": "Fly home from Tampa", "win": "6:04 PM", "notes": "American AA 1402 to Phoenix. Check in on the American app 24 hours before."},{merge:true});
+      b.set(db.collection("stops").doc("d12-land"),{"day": "2026-10-12", "s": 1364, "order": 1364, "d": 30, "stop": "Land in Phoenix", "area": "PHX", "acc": "drive", "kind": "drive", "win": "7:44 PM Arizona time", "allow": "", "cost": "", "drink": "", "notes": "AA 1402 arrives. Home sweet home.", "short": "Land PHX", "fixed": false},{merge:true});
+      b.set(db.doc("settings/trip"),{mig3:true},{merge:true});
       await b.commit(); } }catch(e){}
     // Changes queued by Claude in changes.json are applied once, the first time anyone opens the site after they land
     try{
