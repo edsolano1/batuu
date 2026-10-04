@@ -33,6 +33,11 @@ h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,8vw,84px);l
 h1 span{color:var(--amber)}
 .lede{margin:0;color:var(--muted);max-width:62ch;font-size:16px}
 .hero-inner{grid-template-columns:minmax(0,1fr)}
+@keyframes swl{from{opacity:.4;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes swr{from{opacity:.4;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.wrap.swl [data-view="plan"]:not(.daybar){animation:swl .25s ease-out}
+.wrap.swr [data-view="plan"]:not(.daybar){animation:swr .25s ease-out}
+@media (prefers-reduced-motion: reduce){.wrap.swl [data-view="plan"],.wrap.swr [data-view="plan"]{animation:none}}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .hero-top .eyebrow{flex:1;min-width:0;padding-top:2px}
 .count{flex:none;display:grid;gap:3px;justify-items:end;background:rgba(18,24,32,.8);border:1px solid var(--line);border-radius:10px;padding:7px 10px 6px;backdrop-filter:blur(4px)}
@@ -697,6 +702,17 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
     settingsTimer=setTimeout(async()=>{ try{ await db.doc("settings/trip").set(settings); $("settingsMsg").textContent="Saved for the crew."; }catch(err){ $("settingsMsg").textContent=writeError(err); } },600);
   }
   $("party").addEventListener("change",saveSettings);
+  // Swipe left or right on the plan to move between days
+  (function(){ let x0=0,y0=0,t0=0,ok=false;
+    const skip=el=>el.closest("input,textarea,select,dialog,.days,.tablebox,[contenteditable]");
+    document.addEventListener("touchstart",e=>{ if(e.touches.length!==1||document.body.dataset.active!=="plan"||skip(e.target)){ok=false;return;} ok=true; x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); },{passive:true});
+    document.addEventListener("touchend",e=>{ if(!ok) return; ok=false; const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;
+      if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6||Date.now()-t0>700) return;
+      const days=tripDays(), i=days.indexOf(curDay), j=i+(dx<0?1:-1); if(j<0||j>=days.length) return;
+      curDay=days[j]; local.set("day",curDay); renderDays(); renderTable(); renderTrack(); tick();
+      const w=document.querySelector(".wrap"); w.classList.remove("swl","swr"); void w.offsetWidth; w.classList.add(dx<0?"swl":"swr");
+      const tab=document.querySelector('[data-day="'+curDay+'"]'); if(tab) tab.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"}); },{passive:true});
+  })();
   $("dayTabs").addEventListener("click",e=>{const b=e.target.closest("[data-day]"); if(!b) return; curDay=b.dataset.day; local.set("day",curDay); renderDays(); renderTable(); renderTrack(); tick();});
 
   /* ---------- boot ---------- */
