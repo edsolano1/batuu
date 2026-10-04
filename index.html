@@ -429,8 +429,9 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
     afternoon:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.6" fill="#f5b04a"/><g stroke="#f5b04a" stroke-width="1.2" stroke-linecap="round"><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6"/></g></svg>'};
   const ICON={plane:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 13.5 21 6l-3.5 13-5-4.5-3 3v-5.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
     car:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4l2-5h12l2 5v4zM4 16v2h3v-2M17 16v2h3v-2M4 12h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7.5" cy="14" r="1" fill="currentColor"/><circle cx="16.5" cy="14" r="1" fill="currentColor"/></svg>',
+    bed:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="11" r="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
     bag:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 7V4h6v3M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>'};
-  function iconFor(s){ const n=String(s.stop||""); if(/\b(fly|land|flight)\b/i.test(n)) return ICON.plane; if(/waymo|drive|uber|lyft/i.test(n)) return ICON.car; if(/security|check in/i.test(n)) return ICON.bag; return ""; }
+  function iconFor(s){ const n=String(s.stop||""); if(/\b(fly|land|flight)\b/i.test(n)) return ICON.plane; if(/waymo|drive|uber|lyft/i.test(n)) return ICON.car; if(/security|check in/i.test(n)) return ICON.bag; if(/\b(rest|sleep|nap)\b/i.test(n)) return ICON.bed; return ""; }
   const dayStops=()=>stops.filter(s=>stopDay(s)===curDay);
   function pickDay(){ const days=tripDays(); const saved=local.get("day",null); const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/New_York"});
     curDay=days.includes(curDay)?curDay:days.includes(saved)?saved:days.includes(today)?today:settings.parkDay; }
@@ -754,6 +755,11 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       b.set(db.collection("stops").doc("d12-fly"),{"d": 280, "allow": "About 4 hr 40 min"},{merge:true});
       b.set(db.collection("stops").doc("d12-land"),{"tlabel": "7:44 PM AZ"},{merge:true});
       b.set(db.doc("settings/trip"),{mig5:true},{merge:true});
+      await b.commit(); } }catch(e){}
+    try{ const t=await db.doc("settings/trip").get(); if(t.exists&&!t.data().mig6){
+      const b=db.batch();
+      b.set(db.collection("stops").doc("d08-rest"),{"day": "2026-10-08", "s": 360, "order": 360, "d": 360, "stop": "Rest at the house", "area": "Lutz", "acc": "free", "kind": "free", "win": "About 6:00 AM to noon", "allow": "5 to 6 hr", "cost": "", "drink": "", "notes": "Sleep off the red eye. Nothing planned until the afternoon.", "short": "Rest", "fixed": false},{merge:true});
+      b.set(db.doc("settings/trip"),{mig6:true},{merge:true});
       await b.commit(); } }catch(e){}
     // Changes queued by Claude in changes.json are applied once, the first time anyone opens the site after they land
     try{
