@@ -257,7 +257,11 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
 .scard details[open] .stop{white-space:normal}
 .scard .sub{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden}
 .scard .sub .pill{font-size:10.5px;padding:1px 6px}
-.scard .sub .dk{color:var(--amber);overflow:hidden;text-overflow:ellipsis}
+.fd{display:inline-flex;color:var(--amber)}
+.fd .ico{width:14px;height:14px;margin:0}
+.scard .sub .fd{flex:none}
+.scard .sub .ar{overflow:hidden;text-overflow:ellipsis}
+td.drink .fd{margin-right:6px}
 .scard dl{padding:2px 10px 10px 80px}
 .scard .actions{padding:0 10px 10px 80px}
 .scard .actions button{padding:8px}
@@ -340,7 +344,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
     <div class="sec-head"><h2 id="logTitle">Mission log</h2><div class="right"><span class="eyebrow">Orlando time</span><button type="button" class="small primary edit-only" data-add="stops">Add stop</button></div></div>
     <div class="tablebox">
       <table>
-        <thead><tr><th>Done</th><th>Window</th><th>Stop</th><th>Access</th><th>Allow</th><th>Est. cost</th><th>Crew drink</th><th>Notes</th><th class="edit-only">Edit</th></tr></thead>
+        <thead><tr><th>Done</th><th>Window</th><th>Stop</th><th>Access</th><th>Allow</th><th>Est. cost</th><th>Food and drinks</th><th>Notes</th><th class="edit-only">Edit</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -439,6 +443,11 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
     car:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-4l2-5h12l2 5v4zM4 16v2h3v-2M17 16v2h3v-2M4 12h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7.5" cy="14" r="1" fill="currentColor"/><circle cx="16.5" cy="14" r="1" fill="currentColor"/></svg>',
     bed:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="11" r="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
     bag:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 7V4h6v3M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>'};
+  const DRINK_ICO='<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14l-7 8zM12 12v7M8 20h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+  const FOOD_ICO='<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2 1-3.5 3.5-3.5 7 0 2 1.5 3 3.5 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+  const hasDrink=s=>s.drink===true||(typeof s.drink==="string"&&s.drink.trim()!==""&&!/^(water|done)/i.test(s.drink.trim()));
+  const hasFood=s=>s.eat===true||(s.eat===undefined&&(s.kind==="food"||/\b(breakfast|brunch|lunch|dinner|eat|food)\b/i.test(String(s.stop||""))));
+  const fdIcons=s=>(hasFood(s)?'<span class="fd" title="Food here">'+FOOD_ICO+'</span>':'')+(hasDrink(s)?'<span class="fd" title="Drinks here">'+DRINK_ICO+'</span>':'');
   const BOLT='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="currentColor"/></svg>';
   function iconFor(s){ const n=String(s.stop||""); if(/\b(fly|land|flight)\b/i.test(n)) return ICON.plane; if(/waymo|drive|uber|lyft/i.test(n)) return ICON.car; if(/security|check in/i.test(n)) return ICON.bag; if(/\b(rest|sleep|nap)\b/i.test(n)) return ICON.bed; return ""; }
   const dayStops=()=>stops.filter(s=>stopDay(s)===curDay);
@@ -493,16 +502,16 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
         '<td class="time">'+esc(s.win||clock(s.s))+(s.fixed?'<span class="fx">FIXED</span>':'<span class="clk">about '+clock(s.s)+'</span>')+'</td>'+
         '<td><span class="stop">'+esc(s.stop)+'</span><span class="area">'+esc(s.area)+'</span></td>'+
         '<td>'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+'</td>'+
-        '<td>'+esc(s.allow)+'</td><td class="cost">'+esc(s.cost)+'</td><td class="drink">'+esc(s.drink)+'</td><td class="notes">'+esc(s.notes)+'</td>'+
+        '<td>'+esc(s.allow)+'</td><td class="cost">'+esc(s.cost)+'</td><td class="drink">'+fdIcons(s)+'</td><td class="notes">'+esc(s.notes)+'</td>'+
         '<td class="edit-only"><button type="button" class="small" data-edit="stops" data-id="'+esc(key)+'">Edit</button></td></tr>';
     }).join("");
     $("cardList").innerHTML=list.map((s,ix)=>{
       const a=ACCESS[s.acc]||["",""], key=s._id, next=list[ix+1], ph=phase(s.s,curDay), ph2=next?phase(next.s,curDay):ph;
-      const more=[["Window",s.win,""],["Allow",s.allow,""],["Cost",s.cost,""],["Drink",s.drink,"drink"],["Notes",s.notes,""]].filter(x=>x[1]);
+      const more=[["Window",s.win,""],["Allow",s.allow,""],["Cost",s.cost,""],["Notes",s.notes,""]].filter(x=>x[1]);
       return '<li class="scard'+(done[key]?' done':'')+(s.fixed?' fixed':'')+'" data-id="'+esc(key)+'">'+
         '<div class="sky" style="--c1:'+SKY[ph]+';--c2:'+SKY[ph2]+'" title="'+ph+'"><i>'+SKY_ICON[ph]+'</i></div>'+
         '<details><summary><span class="when">'+(s.tlabel?esc(s.tlabel):clock(s.s).replace(" ","&nbsp;"))+(s.fixed?'<b>FIXED</b>':'')+'</span>'+
-        '<span class="nm"><span class="stop">'+iconFor(s)+esc(s.stop)+'</span><span class="sub">'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+(s.drink?'<span class="dk">'+esc((s.drink.split(" · ").find(x=>!/^[0-9~$]/.test(x.trim()))||s.drink).slice(0,30))+'</span>':(s.area?'<span>'+esc(s.area)+'</span>':''))+'</span></span></summary>'+
+        '<span class="nm"><span class="stop">'+iconFor(s)+esc(s.stop)+'</span><span class="sub">'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+fdIcons(s)+(s.area?'<span class="ar">'+esc(s.area)+'</span>':'')+'</span></span></summary>'+
         '<dl>'+more.map(x=>'<dt>'+x[0]+'</dt><dd class="'+x[2]+'">'+esc(x[1])+'</dd>').join("")+'</dl><div class="actions edit-only"><button type="button" data-edit="stops" data-id="'+esc(key)+'">Edit this stop</button></div></details>'+
         '<label class="chk"><input type="checkbox" aria-label="Mark '+esc(s.stop)+' done"'+(done[key]?" checked":"")+'></label></li>';
     }).join("");
@@ -580,9 +589,9 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       {k:"acc",l:"Access",t:"select",opts:Object.fromEntries(Object.entries(ACCESS).map(([k,v])=>[k,v[0]]))},
       {k:"kind",l:"Timeline color",t:"select",opts:KINDS},
       {k:"allow",l:"Allow",t:"text"},{k:"cost",l:"Est. cost",t:"text"},
-      {k:"drink",l:"Crew drink",t:"text",full:true},{k:"notes",l:"Notes",t:"textarea",full:true},
+      {k:"eat",l:"Food here",t:"check"},{k:"drink",l:"Drinks here",t:"check"},{k:"notes",l:"Notes",t:"textarea",full:true},
       {k:"short",l:"Timeline label (short)",t:"text"},{k:"fixed",l:"Fixed time reservation",t:"check"}],
-      blank:{day:"",stop:"",s:720,d:30,win:"",area:"",acc:"free",kind:"free",allow:"",cost:"",drink:"",notes:"",short:"",fixed:false}},
+      blank:{day:"",stop:"",s:720,d:30,win:"",area:"",acc:"free",kind:"free",allow:"",cost:"",drink:false,notes:"",short:"",fixed:false}},
     flights:{title:"flight",fields:[
       {k:"airline",l:"Airline",t:"text"},{k:"flight",l:"Flight number",t:"text"},
       {k:"from",l:"From (airport code)",t:"text"},{k:"to",l:"To (airport code)",t:"text"},
@@ -781,6 +790,12 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       b.set(db.collection("stops").doc("d08-rest"),{"day": "2026-10-08", "s": 360, "order": 360, "d": 360, "stop": "Rest at the house", "area": "Lutz", "acc": "free", "kind": "free", "win": "About 6:00 AM to noon", "allow": "5 to 6 hr", "cost": "", "drink": "", "notes": "Sleep off the red eye. Nothing planned until the afternoon.", "short": "Rest", "fixed": false},{merge:true});
       b.set(db.doc("settings/trip"),{mig6:true},{merge:true});
       await b.commit(); } }catch(e){}
+    try{ const t=await db.doc("settings/trip").get(); if(t.exists&&!t.data().mig7){
+      const b=db.batch();
+      b.set(db.collection("stops").doc("b08"),{"notes": "Check in from 2:35 PM. ID and booking card required. Umbaran Cheese Roll $13 to share.", "allow": "45 min limit", "cost": "$19 to $23 each"},{merge:true});
+      b.set(db.collection("costs").doc("c5"),{"label": "Drinks in the park (optional)"},{merge:true});
+      b.set(db.doc("settings/trip"),{mig7:true},{merge:true});
+      await b.commit(); } }catch(e){}
     // Changes queued by Claude in changes.json are applied once, the first time anyone opens the site after they land
     try{
       const res=await fetch("changes.json?ts="+Date.now(),{cache:"no-store"}); const queue=res.ok?await res.json():[];
@@ -789,7 +804,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       if(todo.length){
         const snap=async col=>(await db.collection(col).get()).docs.map(x=>Object.assign({_id:x.id},x.data()));
         const live={stops:await snap("stops"),costs:await snap("costs"),flights:await snap("flights")}, sugg=await snap("suggestions");
-        const OK={stops:["day","stop","s","d","win","area","acc","kind","allow","cost","drink","notes","short","tlabel"],costs:["label","price","priceMax","perPerson","taxed"],flights:["airline","flight","from","to","depart","arrive","fromTz","toTz","who","notes"]};
+        const OK={stops:["day","stop","s","d","win","area","acc","kind","allow","cost","drink","eat","notes","short","tlabel"],costs:["label","price","priceMax","perPerson","taxed"],flights:["airline","flight","from","to","depart","arrive","fromTz","toTz","who","notes"]};
         const clean=(col,f)=>{const o={};(OK[col]||[]).forEach(k=>{ if(f&&f[k]!==undefined) o[k]=(typeof f[k]==="string")?f[k].slice(0,300):f[k]; }); if(col==="stops"&&o.s!==undefined){o.s=Math.max(0,Math.min(1439,Math.round(+o.s||0)));o.order=o.s;} if(col==="costs"&&o.price!==undefined) o.price=+o.price||0; return o;};
         const locked=x=>x&&(x.fixed||/^drive home$/i.test(String(x.stop||"").trim()));
         const find=(col,op)=>{ const list=live[col]||[]; if(op.id) return list.find(x=>x._id===op.id); const m=op.match||{}; const key=String(m.stop||m.label||"").toLowerCase(); if(!key) return null;
