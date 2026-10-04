@@ -311,7 +311,7 @@ td.drink .fd{margin-right:6px}
       <span class="count-sub" id="countSub" hidden></span>
     </div>
     </div>
-    <h1 id="heroTitle">One day on <span>Batuu</span></h1>
+    <h1 id="heroTitle">Park <span>day</span></h1>
     <p class="lede" id="heroLede" hidden></p>
   </div>
 </header>
@@ -461,7 +461,7 @@ td.drink .fd{margin-right:6px}
     "2026-10-12":{tag:"Flight",bg:"dusk",eye:"Tampa to Phoenix",title:"Fly <span>back</span>",c:"#ff8a5c",dim:"#7a3d24",soft:"rgba(255,138,92,.12)"}
   };
 
-  const BATUU={tag:"Batuu",eye:$("heroEye").innerHTML,title:$("heroTitle").innerHTML,lede:$("heroLede").innerHTML,c:"#f2a541",dim:"#7a5420",soft:"rgba(242,165,65,.12)"};
+  const BATUU={tag:"Park",eye:$("heroEye").innerHTML,title:$("heroTitle").innerHTML,lede:$("heroLede").innerHTML,c:"#f2a541",dim:"#7a5420",soft:"rgba(242,165,65,.12)"};
   function applyTheme(){
     const t=(curDay&&THEMES[curDay])||BATUU, r=document.documentElement.style;
     r.setProperty("--amber",t.c); r.setProperty("--amber-dim",t.dim); r.setProperty("--amber-soft",t.soft);
