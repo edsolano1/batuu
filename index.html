@@ -12,9 +12,9 @@
 /* Layout: a night hangar departure board. Hero countdown over a slow starfield, flights, a scaled day timeline, the editable flight plan, per person ledger, checklist and suggestion box. Single dark look by choice, amber landing lights. */
 :root{
   color-scheme:dark;
-  --bg:#0c1016; --bg2:#121820; --panel:#161d26; --ink:#e8ecf0; --muted:#93a0ad; --line:#26313d;
+  --bg:#0c1016; --bg2:#121820; --panel:#161d26; --ink:#e8ecf0; --muted:#93a0ad; --line:#323e4c;
   --amber:#f2a541; --amber-dim:#7a5420; --amber-soft:rgba(242,165,65,.12); --amber-ink:#1a1206;
-  --teal:#5fd0b0; --red:#e2554a; --done:#56626e; --scrim:rgba(5,8,12,.72);
+  --teal:#5fd0b0; --red:#e2554a; --done:#7b8794; --scrim:rgba(5,8,12,.72);
   --f-display:"Chakra Petch","Arial Narrow",system-ui,sans-serif;
   --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
@@ -41,13 +41,14 @@ h1 span{color:var(--amber)}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .hero-top .eyebrow{flex:1;min-width:0;padding-top:2px}
 .count{flex:none;display:grid;gap:3px;justify-items:end;background:rgba(18,24,32,.8);border:1px solid var(--line);border-radius:10px;padding:5px 8px 4px;backdrop-filter:blur(4px)}
-.count-label{display:flex;align-items:center;gap:3px;font-family:var(--f-mono);font-weight:500;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);white-space:nowrap}
+#countLabel{max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+.count-label{display:flex;align-items:center;gap:3px;font-family:var(--f-mono);font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);white-space:nowrap}
 .count-label svg{width:9px;height:9px;flex:none;margin:0;vertical-align:0;display:block}
 #countIco,#countIco2{display:flex}
 .digits{display:flex;flex-wrap:nowrap;gap:5px}
 .cell{display:flex;align-items:baseline;gap:1px}
 .cell .n{font-family:var(--f-mono);font-size:15px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
-.cell .u{font-family:var(--f-mono);font-size:9px;color:var(--muted)}
+.cell .u{font-family:var(--f-mono);font-size:10px;color:var(--muted)}
 .count-sub{color:var(--muted);font-size:14px}
 
 .wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:28px 56px;display:grid;gap:28px}
@@ -77,6 +78,7 @@ textarea{resize:vertical;min-height:72px;width:100%}
 .flight .route{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
 .flight .code{font-family:var(--f-display);font-weight:700;font-size:30px;line-height:1}
 .flight .t{font-family:var(--f-mono);font-size:13px;color:var(--amber)}
+.flight .t span{display:block;white-space:nowrap}
 .flight .line{height:1px;background:repeating-linear-gradient(90deg,var(--amber-dim) 0 6px,transparent 6px 12px);position:relative}
 .flight .line::after{content:"✈";position:absolute;left:50%;top:50%;transform:translate(-50%,-55%);color:var(--amber);font-size:14px;background:var(--panel);padding:0 4px}
 .flight .who{font-size:13px;color:var(--muted)}
@@ -103,7 +105,7 @@ textarea{resize:vertical;min-height:72px;width:100%}
 .flag::after{content:"";position:absolute;left:50%;top:14px;width:1px;height:32px;background:var(--amber-dim)}
 .flag.alt::after{height:12px}
 .nowline{position:absolute;top:-4px;bottom:24px;width:2px;background:var(--red);box-shadow:0 0 8px var(--red)}
-.nowline::before{content:"NOW";position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:10px;color:var(--red)}
+.nowline::before{content:"NOW";position:absolute;top:auto;bottom:-14px;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:10px;color:var(--red)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted)}
 .legend i{display:inline-block;width:14px;height:8px;border-radius:4px;margin-right:6px;vertical-align:middle}
 
@@ -175,7 +177,8 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal)}
 .sheet .grid .full{grid-column:1/-1}
 @media (max-width:520px){.sheet .grid{grid-template-columns:1fr}}
 .sheet .field input,.sheet .field select{width:100%}
-.sheet .actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+.sheet .actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;position:sticky;bottom:-18px;background:var(--panel);padding:10px 0 4px;margin-bottom:-4px;z-index:2}
+.sheet:focus{outline:none}
 .sheet .actions div{display:flex;gap:8px;flex-wrap:wrap}
 .chk{display:flex;gap:8px;align-items:center;font-size:14px}
 .foot{color:var(--muted);font-size:13px;max-width:85ch;margin:0}
@@ -197,7 +200,6 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
 .cards{list-style:none;margin:0;padding:0;display:none;gap:10px}
 .scard{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .scard.now{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}
-.scard.done{opacity:.55}
 .scard.done .stop{text-decoration:line-through}
 .scard .top{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:12px 12px 10px}
 .scard .when{font-family:var(--f-mono);font-size:12.5px;color:var(--amber);font-variant-numeric:tabular-nums;min-width:62px;line-height:1.35}
@@ -218,8 +220,6 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
 .scard .actions button{width:100%;padding:10px}
 /* Phone sizing */
 @media (max-width:760px){
-  .tablebox{display:none}
-  .cards{display:grid}
   .hero-inner{padding-block:22px 18px;gap:14px}
   .lede{display:none}
   h1{font-size:clamp(34px,11vw,52px)}
@@ -260,6 +260,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
 .scard .sky i{position:absolute;left:0;top:13px;width:16px;height:16px;background:var(--bg);border-radius:50%;display:grid;place-items:center}
 .scard .sky svg{width:12px;height:12px}
 .scard details{border:1px solid var(--line);border-top:1px solid var(--line);background:var(--panel);border-radius:10px;margin:3px 0 3px 3px;min-width:0}
+.scard.now{box-shadow:none}
 .scard.now details{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}
 .scard.fixed details{border-color:rgba(95,208,176,.55)}
 .scard summary{display:grid;grid-template-columns:1fr;gap:8px;align-items:center;padding:8px 40px 8px 10px;text-transform:none;letter-spacing:0;font-family:var(--f-body);font-size:inherit;color:var(--ink)}
@@ -283,8 +284,8 @@ td.drink .fd{margin-right:6px}
 .scard dl{padding:2px 10px 10px 10px}
 .scard .actions{padding:0 10px 10px 10px}
 .scard .actions button{padding:8px}
-.scard .chk{position:absolute;right:2px;top:5px;width:36px;height:38px;display:grid;place-items:center;z-index:2}
-.scard.done details{opacity:.5}
+.scard .chk{position:absolute;right:0;top:2px;width:44px;height:44px;display:grid;place-items:center;z-index:2}
+.scard.done details{opacity:.6}
 @media (max-width:760px){
   .days{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;overflow:visible}
   .day{min-width:0;padding:6px 2px;justify-items:center;text-align:center;gap:1px}
@@ -300,14 +301,14 @@ td.drink .fd{margin-right:6px}
   .timeline h2{font-size:15px}
   .track{min-width:0;height:86px}
   .track-scroll{overflow:visible}
-  .flag{font-size:9px}
-  .track .tick{font-size:9.5px}
+  .flag{font-size:10px}
+  .track .tick{font-size:10.5px}
   .legend{font-size:10.5px;gap:4px 10px}
   .scard .stop{font-size:14.5px}
 }
 
 </style>
-<style>html,body{margin:0}body{font-family:system-ui,sans-serif}[hidden]{display:none!important}img{max-width:100%}</style>
+<style>@media (min-width:761px){.tabbar{grid-template-columns:repeat(4,140px)!important;justify-content:center}}@media (max-width:1023px){.tablebox{display:none!important}.cards{display:grid!important}}@media (min-width:1024px){table{min-width:0!important}}th{white-space:nowrap}html,body{margin:0}body{font-family:system-ui,sans-serif}[hidden]{display:none!important}img{max-width:100%}</style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
@@ -323,9 +324,9 @@ td.drink .fd{margin-right:6px}
   <div class="hero-inner">
     <div class="hero-top">
     <span class="eyebrow" id="heroEye">Hollywood Studios</span>
-    <div class="count" aria-live="polite">
+    <div class="count">
       <span class="count-label"><span id="countIco"></span><span id="countLabel">Loading</span><span id="countIco2"></span></span>
-      <div class="digits" id="digits"></div>
+      <div class="digits" id="digits" aria-hidden="true"></div>
       <span class="count-sub" id="countSub" hidden></span>
     </div>
     </div>
@@ -367,7 +368,7 @@ td.drink .fd{margin-right:6px}
       </table>
     </div>
     <ul class="cards" id="cardList"></ul>
-    <p class="empty" id="stopsEmpty">Nothing planned for this day yet. Add the first stop with the Add stop button.</p>
+    <p class="empty" id="stopsEmpty">Loading the plan…</p>
   </section>
 
   <section class="card" aria-label="Cost per person" data-view="money">
@@ -402,7 +403,7 @@ td.drink .fd{margin-right:6px}
 <nav class="tabbar" role="tablist" aria-label="Sections"><button type="button" role="tab" data-go="plan" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>Plan</span></button><button type="button" role="tab" data-go="flights" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 13.5 21 6l-3.5 13-5-4.5-3 3v-5.5z"/></svg><span>Flights</span></button><button type="button" role="tab" data-go="money" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2c-.6-.8-1.6-1.2-2.8-1.2-1.6 0-2.8.8-2.8 2s1.1 1.7 2.8 2 2.8.8 2.8 2-1.2 2-2.8 2c-1.2 0-2.2-.4-2.8-1.2M12 6.5V8M12 16v1.5"/></svg><span>Credits</span></button><button type="button" role="tab" data-go="ideas" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H10l-4 4v-4H5z"/></svg><span>Ideas</span></button></nav>
 
 <div class="overlay" id="overlay" hidden>
-  <form class="sheet" id="sheet" aria-labelledby="sheetTitle">
+  <form class="sheet" id="sheet" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="sheetTitle">
     <h2 id="sheetTitle">Edit</h2>
     <div class="grid" id="sheetFields"></div>
     <span class="status" id="sheetMsg" aria-live="polite"></span>
@@ -427,10 +428,12 @@ td.drink .fd{margin-right:6px}
   let settings={parkDay:"2026-10-09",party:4,start:"2026-10-07",end:"2026-10-12"};
   let stops=[], flights=[], costs=[];
   let curDay=null;
-  let db=null, canWrite=true;
+  let db=null, canWrite=true, autoScrolled=false, stopsLoaded=false;
 
   // Orlando is on EDT (UTC-4) through Nov 1, 2026.
-  const etMs=(d,m)=>Date.parse(d+"T00:00:00-04:00")+m*60000;
+  // Each day's times are local to where the crew is. Wednesday is Phoenix (Arizona time).
+  const DAYZONE={"2026-10-07":{off:"-07:00",min:-420,lat:33.45,lon:-112.07}};
+  const etMs=(d,m)=>Date.parse(d+"T00:00:00"+((DAYZONE[d]&&DAYZONE[d].off)||"-04:00"))+m*60000;
   const clock=m=>{m=((Math.round(m)%1440)+1440)%1440;let h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+String(mm).padStart(2,"0")+" "+ap};
   const toHHMM=m=>String(Math.floor(m/60)%24).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
   const fromHHMM=v=>{const [h,m]=String(v||"0:0").split(":").map(Number);return (h||0)*60+(m||0)};
@@ -444,9 +447,9 @@ td.drink .fd{margin-right:6px}
     const dt=new Date(d+"T12:00:00Z"), N=Math.round((dt-Date.UTC(dt.getUTCFullYear(),0,1))/864e5)+1, g=2*Math.PI/365*(N-1);
     const eq=229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
     const dec=0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);
-    const lat=28.4*Math.PI/180, lon=-81.5;
+    const z=DAYZONE[d], lat=(z?z.lat:28.4)*Math.PI/180, lon=z?z.lon:-81.5, tz=z?z.min:-240;
     const ha=Math.acos(Math.cos(90.833*Math.PI/180)/(Math.cos(lat)*Math.cos(dec))-Math.tan(lat)*Math.tan(dec))*180/Math.PI;
-    return {rise:Math.round(720-4*(lon+ha)-eq-240), set:Math.round(720-4*(lon-ha)-eq-240)};
+    return {rise:Math.round(720-4*(lon+ha)-eq+tz), set:Math.round(720-4*(lon-ha)-eq+tz)};
   }
   const SKY={night:"#5a6fb5",dawn:"#f08a5d",morning:"#f2c14e",noon:"#ffe28a",afternoon:"#f5b04a",dusk:"#e8674f"};
   function phase(m,d){ const t=sunTimes(d); if(m<t.rise-40||m>t.set+40) return "night"; if(m<t.rise+50) return "dawn"; if(m>t.set-50) return "dusk"; if(m<660) return "morning"; if(m<900) return "noon"; return "afternoon"; }
@@ -498,6 +501,7 @@ td.drink .fd{margin-right:6px}
     $("logTitle").textContent="The plan"; $("dayTitle").textContent="At a glance";
     applyTheme();
   }
+  const money0=n=>"$"+Math.round(n).toLocaleString("en-US");
   const money=n=>"$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
 
   /* ---------- rendering ---------- */
@@ -507,16 +511,16 @@ td.drink .fd{margin-right:6px}
     $("flightEmpty").hidden=flights.length>0;
     $("flightList").innerHTML=flights.map(f=>{
       const dep=f.depart?new Date(f.depart):null, arr=f.arrive?new Date(f.arrive):null;
-      const fmt=(dt,tz)=>dt&&!isNaN(dt)?dt.toLocaleString([], {weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZone:tz}):"";
+      const fmt=(dt,tz)=>dt&&!isNaN(dt)?'<span>'+esc(dt.toLocaleDateString([], {weekday:"short",month:"short",day:"numeric",timeZone:tz}))+'</span><span>'+esc(dt.toLocaleTimeString([], {hour:"numeric",minute:"2-digit",timeZone:tz}))+'</span>':"";
       return '<article class="flight"><div class="top"><span>'+esc(f.airline)+' '+esc(f.flight)+'</span><button type="button" class="small edit-only" data-edit="flights" data-id="'+esc(f._id)+'">Edit</button></div>'+
-        '<div class="route"><div><div class="code">'+esc(f.from)+'</div><div class="t">'+esc(fmt(dep,f.fromTz||"America/Phoenix"))+'</div></div><div class="line" aria-hidden="true"></div><div style="text-align:right"><div class="code">'+esc(f.to)+'</div><div class="t">'+esc(fmt(arr,f.toTz||"America/New_York"))+'</div></div></div>'+
+        '<div class="route"><div><div class="code">'+esc(f.from)+'</div><div class="t">'+fmt(dep,f.fromTz||"America/Phoenix")+'</div></div><div class="line" aria-hidden="true"></div><div style="text-align:right"><div class="code">'+esc(f.to)+'</div><div class="t">'+fmt(arr,f.toTz||"America/New_York")+'</div></div></div>'+
         (f.who?'<div class="who">'+esc(f.who)+'</div>':'')+(f.notes?'<div class="who">'+esc(f.notes)+'</div>':'')+'</article>';
     }).join("");
     applyWriteState();
   }
 
   function renderTable(){
-    const tb=$("tbody"), list=dayStops(); $("stopsEmpty").hidden=list.length>0;
+    const tb=$("tbody"), list=dayStops(); $("stopsEmpty").hidden=list.length>0; if(db&&stopsLoaded) $("stopsEmpty").textContent="Nothing planned yet.";
     tb.innerHTML=list.map((s,ix)=>{
       const a=ACCESS[s.acc]||["",""], key=s._id, next=list[ix+1], ph=phase(s.s,curDay), ph2=next?phase(next.s,curDay):ph;
       return '<tr data-id="'+esc(key)+'"'+(done[key]?' class="done"':'')+'>'+
@@ -530,7 +534,7 @@ td.drink .fd{margin-right:6px}
     }).join("");
     $("cardList").innerHTML=list.map((s,ix)=>{
       const a=ACCESS[s.acc]||["",""], key=s._id, next=list[ix+1], ph=phase(s.s,curDay), ph2=next?phase(next.s,curDay):ph;
-      const more=[["Window",s.win,""],["Allow",s.allow,""],["Cost",s.cost,""],["Notes",s.notes,""]].filter(x=>x[1]);
+      const more=[["Area",s.area,""],["Window",s.win,""],["Allow",s.allow,""],["Cost",s.cost,""],["Notes",s.notes,""]].filter(x=>x[1]);
       return '<li class="scard'+(done[key]?' done':'')+(s.fixed?' fixed':'')+'" data-id="'+esc(key)+'">'+
         '<div class="sky" style="--c1:'+SKY[ph]+';--c2:'+SKY[ph2]+'" title="'+ph+'"><i>'+SKY_ICON[ph]+'</i></div>'+
         '<details><summary>'+
@@ -563,11 +567,11 @@ td.drink .fd{margin-right:6px}
     costs.forEach(c=>{
       const k=(c.taxed?1+TAX:1)/(c.perPerson?1:p), lo=(+c.price||0)*k, hiRaw=+c.priceMax||0, hi=hiRaw>(+c.price||0)?hiRaw*k:0;
       total+=hi?(lo+hi)/2:lo;
-      const shown=hi?money(lo).replace(/\.\d\d$/,"")+" to "+money(hi).replace(/\.\d\d$/,""):money(lo);
+      const shown=hi?money0(lo)+" to "+money0(hi):money(lo);
       html+='<div class="row"><span>'+esc(c.label)+(c.perPerson?'':' <small>split '+p+' ways</small>')+'</span><span class="amt">'+shown+'<button type="button" class="small edit-only" data-edit="costs" data-id="'+esc(c._id)+'">Edit</button></span></div>';
     });
     if(!costs.length) html+='<p class="empty">No costs yet. Add one to start the tally.</p>';
-    html+='<div class="row total"><span>Each person pays about</span><span class="amt">~'+money(total).replace(/\.\d\d$/,"")+'</span></div>';
+    html+='<div class="row total"><span>Each person pays about</span><span class="amt">~'+money0(total)+'</span></div>';
     html+='<div class="row" style="border:0"><small>Tax included. Food is a range since everyone picks their own; the total uses the middle. Shared costs are split across the crew.</small><span></span></div>';
     $("ledgerRows").innerHTML=html; applyWriteState();
   }
@@ -586,8 +590,7 @@ td.drink .fd{margin-right:6px}
     const d=settings.parkDay, ev=[];
     ev.push({at:etMs(d,420)-3*86400000,label:"Lightning Lane opens",ico:"bolt",sub:"Book Multi Pass: Smuggler's Run, Tower of Terror, Star Tours."});
     flights.forEach(f=>{ const t=Date.parse(f.depart); if(!isNaN(t)) ev.push({at:t,label:"Wheels up in",ico:"plane",sub:((f.airline||"")+" "+(f.flight||"")).trim()+" from "+(f.from||"")+" to "+(f.to||"")+"."}); });
-    const pk=stops.filter(s=>stopDay(s)===d);
-    if(pk.length) ev.push({at:etMs(d,pk[0].s),label:"Batuu in",sub:"Roll out around "+clock(pk[0].s)+" Orlando time. No rush."});
+    stops.filter(s=>!s.fixed&&!/\b(fly|land)\b/i.test(String(s.stop||""))).forEach(s=>ev.push({at:etMs(stopDay(s),s.s),label:"Next: "+(s.short||s.stop),sub:s.stop+" at "+clock(s.s)+"."}));
     stops.filter(s=>s.fixed).forEach(s=>ev.push({at:etMs(stopDay(s),s.s-15),label:s.stop+" in",sub:"Fixed at "+clock(s.s)+" on "+dayName(stopDay(s))+". Everything else is flexible."}));
     return ev.sort((a,b)=>a.at-b.at);
   }
@@ -599,7 +602,10 @@ td.drink .fd{margin-right:6px}
     const a0=etMs(d,T0()), a1=etMs(d,T1()), nl=$("nowline");
     if(nl){ if(now>=a0&&now<=a1){nl.hidden=false;nl.style.left=((now-a0)/(a1-a0)*100)+"%";} else nl.hidden=true; }
     document.querySelectorAll("[data-id].now").forEach(r=>r.classList.remove("now"));
-    if(now>=a0&&now<=a1){ let cur=null; dayStops().forEach(s=>{if(now>=etMs(d,s.s)) cur=s;}); if(cur&&!done[cur._id]){ document.querySelectorAll("tr[data-id],.scard[data-id]").forEach(r=>{ if(r.dataset.id===cur._id) r.classList.add("now"); }); } }
+    if(now>=a0&&now<=a1){ const L=dayStops().filter(s=>!done[s._id]);
+      const cur=L.filter(s=>now>=etMs(d,s.s)&&now<etMs(d,s.s+(s.d||30))).pop()||L.find(s=>etMs(d,s.s)>now);
+      if(cur){ document.querySelectorAll("tr[data-id],.scard[data-id]").forEach(r=>{ if(r.dataset.id===cur._id) r.classList.add("now"); });
+        if(!autoScrolled&&stopsLoaded&&document.body.dataset.active==="plan"&&window.scrollY<80){ autoScrolled=true; const el=[...document.querySelectorAll(".scard.now,tr.now")].find(x=>x.offsetParent); if(el) el.scrollIntoView({block:"start",behavior:"auto"}); } } }
   }
 
   /* ---------- editor ---------- */
@@ -607,14 +613,16 @@ td.drink .fd{margin-right:6px}
     stops:{title:"stop",fields:[
       {k:"stop",l:"Stop name",t:"text",full:true,req:true},
       {k:"day",l:"Day",t:"day"},
-      {k:"s",l:"Start (Orlando time)",t:"time"},{k:"d",l:"Length (minutes)",t:"number"},
-      {k:"win",l:"Window label",t:"text",ph:"Late morning"},{k:"area",l:"Area",t:"text"},
-      {k:"acc",l:"Access",t:"select",opts:Object.fromEntries(Object.entries(ACCESS).map(([k,v])=>[k,v[0]]))},
-      {k:"kind",l:"Timeline color",t:"select",opts:KINDS},
-      {k:"allow",l:"Allow",t:"text"},{k:"cost",l:"Est. cost",t:"text"},
-      {k:"eat",l:"Food here",t:"check"},{k:"drink",l:"Drinks here",t:"check"},{k:"notes",l:"Notes",t:"textarea",full:true},{k:"link",l:"Website link",t:"text",ph:"https://"},{k:"menu",l:"Menu link",t:"text",ph:"https://"},
-      {k:"short",l:"Timeline label (short)",t:"text"},{k:"fixed",l:"Fixed time reservation",t:"check"}],
-      blank:{day:"",stop:"",s:720,d:30,win:"",area:"",acc:"free",kind:"free",allow:"",cost:"",drink:false,notes:"",short:"",fixed:false}},
+      {k:"s",l:"Start (local time)",t:"time"},{k:"d",l:"Length (minutes)",t:"number"},
+      {k:"area",l:"Area",t:"text"},{k:"kind",l:"Type",t:"select",opts:KINDS},
+      {k:"acc",l:"How you get in",t:"select",opts:Object.fromEntries(Object.entries(ACCESS).map(([k,v])=>[k,v[0]]))},
+      {k:"eat",l:"Food here",t:"check"},{k:"drink",l:"Drinks here",t:"check"},
+      {k:"notes",l:"Notes",t:"textarea",full:true},
+      {k:"link",l:"Website link",t:"text",ph:"https://"},{k:"menu",l:"Menu link",t:"text",ph:"https://"},
+      {k:"win",l:"Time note",t:"text",ph:"Late morning"},{k:"allow",l:"Time needed",t:"text",ph:"About 30 min"},
+      {k:"cost",l:"Est. cost",t:"text"},{k:"short",l:"Short name on the timeline",t:"text"},
+      {k:"fixed",l:"Fixed time reservation",t:"check",full:true}],
+      blank:{day:"",stop:"",s:720,d:30,win:"",area:"",acc:"free",kind:"free",allow:"",cost:"",drink:false,notes:"",short:"",fixed:false,link:"",menu:""}},
     flights:{title:"flight",fields:[
       {k:"airline",l:"Airline",t:"text"},{k:"flight",l:"Flight number",t:"text"},
       {k:"from",l:"From (airport code)",t:"text"},{k:"to",l:"To (airport code)",t:"text"},
@@ -650,7 +658,9 @@ td.drink .fd{margin-right:6px}
     const item=id?list.find(x=>x._id===id):null;
     const data=Object.assign({},sc.blank,item||{});
     if(col==="stops"&&!data.day) data.day=item?stopDay(item):curDay;
-    editing={col,id:item?id:null}; confirmDel=false;
+    if(col==="stops"){ data.eat=hasFood(data); data.drink=hasDrink(data);
+      if(!item){ const L=stops.filter(x=>stopDay(x)===data.day); if(L.length){ const end=Math.max(...L.map(x=>x.s+(x.d||30))); data.s=Math.min(1380,Math.ceil(end/15)*15); } } }
+    editing={col,id:item?id:null,prevS:item?item.s:null}; confirmDel=false; lastFocus=document.activeElement;
     $("sheetTitle").textContent=(item?"Edit ":"Add ")+sc.title;
     $("sheetDelete").hidden=!item; $("sheetDelete").textContent="Delete"; $("sheetMsg").textContent="";
     $("sheetFields").innerHTML=sc.fields.map(f=>{
@@ -666,15 +676,18 @@ td.drink .fd{margin-right:6px}
       return '<div class="field'+(f.full?' full':'')+'"><label for="'+fid+'">'+esc(f.l)+'</label>'+input+'</div>';
     }).join("");
     if(col==="stops"){ syncDayFields(); $("f_day").addEventListener("change",syncDayFields); }
-    $("overlay").hidden=false; const first=$("sheetFields").querySelector("input,textarea,select"); if(first) first.focus();
+    $("overlay").hidden=false; document.querySelector("main").inert=true;
+    const coarse=window.matchMedia&&matchMedia("(pointer:coarse)").matches; const first=$("sheetFields").querySelector("input,textarea,select");
+    if(first&&!coarse) first.focus(); else $("sheet").focus({preventScroll:true});
   }
-  function closeEditor(){ $("overlay").hidden=true; editing=null; }
+  let lastFocus=null;
+  function closeEditor(){ $("overlay").hidden=true; editing=null; document.querySelector("main").inert=false; if(lastFocus&&lastFocus.focus&&document.contains(lastFocus)) lastFocus.focus({preventScroll:true}); }
   function readForm(){
     const sc=SCHEMAS[editing.col], out={};
     sc.fields.forEach(f=>{const el=$("f_"+f.k); if(!el) return;
       if(f.t==="check") out[f.k]=el.checked;
       else if(f.t==="number") out[f.k]=Number(el.value)||0;
-      else if(f.t==="time") out[f.k]=fromHHMM(el.value);
+      else if(f.t==="time") out[f.k]=el.value?fromHHMM(el.value):null;
       else out[f.k]=el.value.trim();
     });
     sc.fields.filter(f=>f.t==="datetime").forEach(f=>{ const v=out[f.k]; out[f.k]=v?(v.length===16?v+":00":v)+(OFFS[out[f.tzKey]]||"-04:00"):""; });
@@ -684,15 +697,19 @@ td.drink .fd{margin-right:6px}
     e.preventDefault(); if(!editing||!db) return;
     const sc=SCHEMAS[editing.col], body=readForm();
     const miss=sc.fields.find(f=>f.req&&!String(body[f.k]||"").trim()); if(miss){$("sheetMsg").textContent=miss.l+" is required.";return;}
-    if(editing.col==="stops") body.order=body.s;
+    if(editing.col==="stops"){
+      if(body.s===null){ $("sheetMsg").textContent="Pick a start time."; return; }
+      if(!(body.d>0)) body.d=30; body.d=Math.min(Math.round(body.d),1440-body.s);
+      body.order=body.s;
+      if(editing.id&&editing.prevS!==null&&body.s!==editing.prevS) body.tlabel="";
+    }
     if(editing.col==="flights") body.order=Date.parse(body.depart)||0;
     if(!editing.id&&editing.col==="costs"){ const list=costs; body.order=(list.length?Math.max(...list.map(x=>+x.order||0)):0)+10; }
     $("sheetSave").disabled=true; $("sheetMsg").textContent="Saving…";
-    try{
-      if(editing.id) await db.collection(editing.col).doc(editing.id).update(body);
-      else await db.collection(editing.col).add(body);
-      closeEditor();
-    }catch(err){ $("sheetMsg").textContent=writeError(err); }
+    // Saves land on this phone right away and sync when there's signal, so don't wait on the server
+    const w=editing.id?db.collection(editing.col).doc(editing.id).update(body):db.collection(editing.col).add(body);
+    try{ await Promise.race([w,new Promise(r=>setTimeout(r,1200))]); closeEditor(); }
+    catch(err){ $("sheetMsg").textContent=writeError(err); }
     $("sheetSave").disabled=false;
   });
   $("sheetDelete").addEventListener("click",async()=>{
@@ -731,7 +748,7 @@ td.drink .fd{margin-right:6px}
     settings=Object.assign({},settings,{party:+$("party").value});
     renderLedger();
     if(!db) return; clearTimeout(settingsTimer);
-    settingsTimer=setTimeout(async()=>{ try{ await db.doc("settings/trip").set(settings); $("settingsMsg").textContent="Saved for the crew."; }catch(err){ $("settingsMsg").textContent=writeError(err); } },600);
+    settingsTimer=setTimeout(async()=>{ try{ await db.doc("settings/trip").set({party:settings.party},{merge:true}); $("settingsMsg").textContent="Saved for the crew."; }catch(err){ $("settingsMsg").textContent=writeError(err); } },600);
   }
   $("party").addEventListener("change",saveSettings);
   // Tap a block or label on the timeline to jump to that stop with its details open
@@ -741,7 +758,7 @@ td.drink .fd{margin-right:6px}
     const card=document.querySelector('.scard[data-id="'+id+'"]'), row=document.querySelector('tr[data-id="'+id+'"]');
     const el=(card&&card.offsetParent)?card:row; if(!el) return;
     const d=el.querySelector("details"); if(d) d.open=true;
-    el.scrollIntoView({behavior:"smooth",block:"start"});
+    el.scrollIntoView({behavior:(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)?"auto":"smooth",block:"start"});
     el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
   }
   $("track").addEventListener("click",e=>{ const t=e.target.closest("[data-sid]"); if(t) openStop(t.dataset.sid); });
@@ -768,11 +785,17 @@ td.drink .fd{margin-right:6px}
     try{
       if(!window.firebase||FIREBASE_CONFIG.apiKey==="PASTE_ME") throw new Error("no config");
       firebase.initializeApp(FIREBASE_CONFIG); db=firebase.firestore();
+      try{ if(db.enablePersistence) db.enablePersistence({synchronizeTabs:true}).catch(()=>{}); }catch(e){}
     }catch(e){
       db=null; $("stopsEmpty").textContent="The shared plan couldn't load. Refresh the page to try again."; $("flightEmpty").textContent="Flights couldn't load. Refresh to try again.";
       $("suggSend").disabled=true; applyWriteState(); return;
     }
     canWrite=true; applyWriteState();
+    const sub=(col,fn)=>db.collection(col).orderBy("order","asc").onSnapshot(snap=>{fn(snap.docs.map(x=>Object.assign({_id:x.id},x.data()||{})));},()=>{ if(col==="stops"&&!stops.length) $("stopsEmpty").textContent="Couldn't reach the plan. It will load when you have signal."; });
+    sub("stops",v=>{stops=v.map(x=>Object.assign(x,{s:+x.s||0,d:+x.d||30}));stopsLoaded=v.length>0||stopsLoaded;renderDays();renderTable();renderTrack();tick();});
+    sub("flights",v=>{flights=v;renderFlights();renderDays();tick();});
+    sub("costs",v=>{costs=v;renderLedger();});
+    db.doc("settings/trip").onSnapshot(snap=>{ if(snap.exists){ stopsLoaded=true; settings=Object.assign({},settings,snap.data()); all(); } },()=>{});
     try{ const t=await db.doc("settings/trip").get(); if(!t.exists){ const b=db.batch(); Object.entries(SEED).forEach(([col,docs])=>Object.entries(docs).forEach(([id,data])=>b.set(db.collection(col).doc(id),data))); await b.commit(); } }catch(e){}
     try{ const t=await db.doc("settings/trip").get(); if(t.exists&&!t.data().mig1){
       const b=db.batch();
@@ -871,9 +894,10 @@ td.drink .fd{margin-right:6px}
         const find=(col,op)=>{ const list=live[col]||[]; if(op.id) return list.find(x=>x._id===op.id); const m=op.match||{}; const key=String(m.stop||m.label||"").toLowerCase(); if(!key) return null;
           return list.find(x=>String(x.stop||x.label||"").toLowerCase()===key&&(!m.day||x.day===m.day))||list.find(x=>String(x.stop||x.label||"").toLowerCase().includes(key)&&(!m.day||x.day===m.day)); };
         const b=db.batch();
+        let addN=0;
         todo.forEach(c=>{
           (c.ops||[]).slice(0,20).forEach(op=>{ const col=op.col||"stops"; if(!OK[col]) return;
-            if(op.op==="add"){ const f=clean(col,op.fields); if(col==="stops"){ if(!f.stop) return; f.day=f.day||settings.parkDay; f.fixed=false; f.acc=f.acc||"free"; f.kind=f.kind||"free"; if(f.s===undefined){f.s=720;f.order=720;} f.d=f.d||30; } if(col==="costs"){ f.order=999; } b.set(db.collection(col).doc(),f); }
+            if(op.op==="add"){ const f=clean(col,op.fields); if(col==="stops"){ if(!f.stop) return; f.day=f.day||settings.parkDay; f.fixed=false; f.acc=f.acc||"free"; f.kind=f.kind||"free"; if(f.s===undefined){f.s=720;f.order=720;} f.d=f.d||30; } if(col==="costs"){ f.order=999; } b.set(db.collection(col).doc("q_"+String(c.id).replace(/[^A-Za-z0-9_-]/g,"")+"_"+(addN++)),f); }
             else { const tgt=find(col,op); if(!tgt||locked(tgt)) return;
               if(op.op==="update") b.set(db.collection(col).doc(tgt._id),clean(col,op.fields),{merge:true});
               else if(op.op==="delete") b.delete(db.collection(col).doc(tgt._id)); } });
@@ -885,11 +909,6 @@ td.drink .fd{margin-right:6px}
         await b.commit();
       }
     }catch(e){ console.warn("changes.json not applied",e); }
-    const sub=(col,fn)=>db.collection(col).orderBy("order","asc").onSnapshot(snap=>{fn(snap.docs.map(x=>Object.assign({_id:x.id},x.data()||{})));},()=>{});
-    sub("stops",v=>{stops=v.map(x=>Object.assign(x,{s:+x.s||0,d:+x.d||30}));renderDays();renderTable();renderTrack();tick();});
-    sub("flights",v=>{flights=v;renderFlights();renderDays();tick();});
-    sub("costs",v=>{costs=v;renderLedger();});
-    db.doc("settings/trip").onSnapshot(snap=>{ if(snap.exists){ settings=Object.assign({},settings,snap.data()); all(); } },()=>{});
 
     // Suggestion box: shared list anyone can post to and mark done
     const col=db.collection("suggestions"); let latest=[];
@@ -935,7 +954,10 @@ td.drink .fd{margin-right:6px}
   function glow(x,y,r,col,a){const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,hexA(col,a));g.addColorStop(1,hexA(col,0));ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}
   function starfield(ts,drift){ for(const s of P){ if(drift&&!reduce){s.x-=s.z*0.15;if(s.x<0)s.x=W;}
       const a=0.2+0.5*s.z*(0.6+0.4*Math.sin(ts/1000+s.t)); ctx.fillStyle="rgba(220,230,240,"+a+")"; ctx.fillRect(s.x,s.y,s.z*1.5,s.z*1.5);} }
-  function draw(ts){ ts=ts||0; ctx.clearRect(0,0,W,H); const c=tint(), mv=!reduce;
+  let MONO_FONT="", lastFrame=0;
+  // About 30 frames a second is plenty for a background and saves phone battery
+  function loop(ts){ if(ts-lastFrame>=32){ lastFrame=ts; draw(ts,true); } requestAnimationFrame(loop); }
+  function draw(ts,fromLoop){ ts=ts||0; ctx.clearRect(0,0,W,H); const c=tint(), mv=!reduce;
     if(mode==="stars"){ for(const s of P){ if(mv){s.x-=s.z*0.15;if(s.x<0)s.x=W;}
         const a=0.25+0.55*s.z*(0.6+0.4*Math.sin(ts/900+s.t));
         ctx.fillStyle=s.z>0.9?hexA(c,a):"rgba(220,230,240,"+a+")";ctx.fillRect(s.x,s.y,s.z*1.6,s.z*1.6);} }
@@ -945,7 +967,7 @@ td.drink .fd{margin-right:6px}
       const pt=u=>[(1-u)*(1-u)*x0+2*(1-u)*u*cx+u*u*x1,(1-u)*(1-u)*y0+2*(1-u)*u*cy+u*u*y1];
       ctx.setLineDash([3,7]); ctx.lineWidth=1.2; ctx.strokeStyle=hexA(c,0.28); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.quadraticCurveTo(cx,cy,x1,y1); ctx.stroke(); ctx.setLineDash([]);
       [[x0,y0],[x1,y1]].forEach(([x,y])=>{ glow(x,y,14,c,0.5); ctx.fillStyle=hexA(c,0.9); ctx.beginPath(); ctx.arc(x,y,2.5,0,6.29); ctx.fill(); });
-      ctx.font="600 10px "+getComputedStyle(document.body).getPropertyValue("--f-mono"); ctx.fillStyle=hexA(c,0.6); ctx.fillText("PHX",x0+8,y0+14); ctx.fillText("TPA",x1-26,y1-10);
+      ctx.font=MONO_FONT||(MONO_FONT="600 10px "+getComputedStyle(document.body).getPropertyValue("--f-mono")); ctx.fillStyle=hexA(c,0.6); ctx.fillText("PHX",x0+8,y0+14); ctx.fillText("TPA",x1-26,y1-10);
       const u=mv?((ts/45000)%1):0.55, n=24; ctx.lineWidth=2;
       for(let i=0;i<n;i++){ const a=Math.max(0,u-0.18*(1-i/n)), b2=Math.max(0,u-0.18*(1-(i+1)/n)); const [ax,ay]=pt(a),[bx,by]=pt(b2); ctx.strokeStyle=hexA(c,0.5*i/n); ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke(); }
       const [px,py]=pt(u),[qx,qy]=pt(Math.min(1,u+0.001)); const ang=Math.atan2(qy-py,qx-px);
@@ -969,9 +991,10 @@ td.drink .fd{margin-right:6px}
       starfield(ts,false); glow(W*0.62,H*0.62,W*0.4,c,0.22); ctx.fillStyle=hexA("#ffb38a",0.55); ctx.beginPath(); ctx.arc(W*0.62,H*0.62,26,0,6.29); ctx.fill();
       ridge.forEach((pts,k)=>{ ctx.beginPath(); ctx.moveTo(0,H); pts.forEach((y,i)=>ctx.lineTo(i/40*W,y*H)); ctx.lineTo(W,H); ctx.closePath(); ctx.fillStyle=k?"#0b0e13":"#151a22"; ctx.fill(); });
       for(const e of embers){ if(mv){ e.y-=e.v; e.x+=Math.sin(ts/2000+e.t)*0.2; if(e.y<H*0.2){e.y=H*0.66;e.x=R()*W;} } const a=Math.min(1,(e.y-H*0.2)/(H*0.25))*(0.5+0.5*Math.sin(ts/700+e.t)); glow(e.x,e.y,6,c,0.4*a); } }
-    if(mv) requestAnimationFrame(draw); }
+  }
   function size(){const r=cv.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);seed();}
-  size(); window.__setBg(window.__bgWant||mode); draw(0); window.addEventListener("resize",()=>{size();if(reduce)draw(0);});
+  size(); window.__setBg(window.__bgWant||mode); draw(0); if(!reduce) requestAnimationFrame(loop);
+  let lastW=window.innerWidth; window.addEventListener("resize",()=>{ if(Math.abs(window.innerWidth-lastW)<2&&W) return; lastW=window.innerWidth; size(); if(reduce) draw(0); });
 })();
 </script>
 
