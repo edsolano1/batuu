@@ -85,14 +85,20 @@ textarea{resize:vertical;min-height:72px;width:100%}
 .track-scroll{overflow-x:auto}
 .track{position:relative;height:100px;min-width:760px}
 .rail{position:absolute;left:0;right:0;top:46px;height:6px;border-radius:3px;background:var(--bg2)}
-.seg{position:absolute;top:45px;height:8px;border-radius:4px;opacity:1;box-shadow:0 0 0 2px var(--panel)}
+.seg{cursor:pointer;position:absolute;top:45px;height:8px;border-radius:4px;opacity:1;box-shadow:0 0 0 2px var(--panel)}
 .seg.drive,.legend i.drive{background:#5f7086}
 .seg.drive{top:46px;height:6px}.seg.ride{background:var(--amber)}.seg.food{background:var(--teal)}.seg.free,.legend i.free{background:var(--panel);box-shadow:inset 0 0 0 1.5px #8c99a8,0 0 0 2px var(--panel)}.seg.show{background:#b58cf0}
 .seg.fixed{opacity:1;top:42px;height:14px;border-radius:4px;box-shadow:0 0 0 2px var(--bg),0 0 12px var(--teal)}
 .tick{position:absolute;top:62px;font-family:var(--f-mono);font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
 .tick::before{content:"";position:absolute;left:50%;top:-8px;width:1px;height:6px;background:var(--line)}
-.flag{position:absolute;top:0;transform:translateX(-50%);font-family:var(--f-mono);font-size:10.5px;white-space:nowrap}
+.flag{position:absolute;top:0;transform:translateX(-50%);cursor:pointer;padding:0 2px;font-family:var(--f-mono);font-size:10.5px;white-space:nowrap}
 .flag.alt{top:20px}
+.seg::before{content:"";position:absolute;inset:-12px -2px}
+.seg.sel{outline:2px solid var(--ink);outline-offset:2px}
+.flag.sel{color:var(--ink)}
+@keyframes flash{0%{box-shadow:0 0 0 2px var(--amber),0 0 18px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+.scard,tr[data-id]{scroll-margin-top:110px}
+.scard.flash details,tr.flash{animation:flash 1.6s ease-out}
 .flag.fixed{color:var(--teal);font-weight:500}
 .flag::after{content:"";position:absolute;left:50%;top:14px;width:1px;height:32px;background:var(--amber-dim)}
 .flag.alt::after{height:12px}
@@ -534,11 +540,11 @@ td.drink .fd{margin-right:6px}
     const a0=T0(), a1=T1(), pct=m=>((m-a0)/(a1-a0)*100);
     const sk=[]; for(let m=a0;m<=a1;m+=30) sk.push(SKY[phase(m,curDay)]+' '+pct(m).toFixed(1)+'%');
     let html='<div class="rail sky-rail" style="background:linear-gradient(90deg,'+sk.join(",")+')"></div>';
-    dayStops().forEach(s=>{const a=s.s,b=s.s+(s.d||30); html+='<div class="seg '+esc(s.kind||"free")+(s.fixed?" fixed":"")+'" style="left:'+pct(a)+'%;width:'+Math.max(.4,pct(b)-pct(a))+'%" title="'+esc(s.stop)+'"></div>';});
+    dayStops().forEach(s=>{const a=s.s,b=s.s+(s.d||30); html+='<div class="seg '+esc(s.kind||"free")+(s.fixed?" fixed":"")+'" data-sid="'+esc(s._id)+'" role="button" tabindex="0" aria-label="'+esc(s.stop)+'" style="left:'+pct(a)+'%;width:'+Math.max(.4,pct(b)-pct(a))+'%" title="'+esc(s.stop)+'"></div>';});
     const stp=(a1-a0)<=360?60:120;
     for(let m=Math.ceil(a0/stp)*stp;m<=a1;m+=stp) html+='<span class="tick" style="left:'+pct(m)+'%">'+clock(m).replace(":00","")+'</span>';
     let row=0;
-    dayStops().forEach(s=>{ if(["ride","food","show"].includes(s.kind)||s.fixed||curDay!==settings.parkDay){ const lbl=s.short||String(s.stop||"").slice(0,14); html+='<span class="flag r'+row+(s.fixed?" fixed":"")+'" style="left:'+pct(s.s+Math.min(s.d||30,a1-s.s)/2)+'%">'+iconFor(s)+esc(lbl)+'</span>'; row=(row+1)%3; } });
+    dayStops().forEach(s=>{ if(["ride","food","show"].includes(s.kind)||s.fixed||curDay!==settings.parkDay){ const lbl=s.short||String(s.stop||"").slice(0,14); html+='<span class="flag r'+row+(s.fixed?" fixed":"")+'" data-sid="'+esc(s._id)+'" style="left:'+pct(s.s+Math.min(s.d||30,a1-s.s)/2)+'%">'+iconFor(s)+esc(lbl)+'</span>'; row=(row+1)%3; } });
     html+='<div class="nowline" id="nowline" hidden></div>';
     $("track").innerHTML=html;
   }
@@ -720,6 +726,18 @@ td.drink .fd{margin-right:6px}
     settingsTimer=setTimeout(async()=>{ try{ await db.doc("settings/trip").set(settings); $("settingsMsg").textContent="Saved for the crew."; }catch(err){ $("settingsMsg").textContent=writeError(err); } },600);
   }
   $("party").addEventListener("change",saveSettings);
+  // Tap a block or label on the timeline to jump to that stop with its details open
+  function openStop(id){
+    document.querySelectorAll("#track .sel").forEach(x=>x.classList.remove("sel"));
+    document.querySelectorAll('#track [data-sid="'+id+'"]').forEach(x=>x.classList.add("sel"));
+    const card=document.querySelector('.scard[data-id="'+id+'"]'), row=document.querySelector('tr[data-id="'+id+'"]');
+    const el=(card&&card.offsetParent)?card:row; if(!el) return;
+    const d=el.querySelector("details"); if(d) d.open=true;
+    el.scrollIntoView({behavior:"smooth",block:"start"});
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  }
+  $("track").addEventListener("click",e=>{ const t=e.target.closest("[data-sid]"); if(t) openStop(t.dataset.sid); });
+  $("track").addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.dataset.sid){ e.preventDefault(); openStop(e.target.dataset.sid); } });
   // Swipe left or right on the plan to move between days
   (function(){ let x0=0,y0=0,t0=0,ok=false;
     const skip=el=>el.closest("input,textarea,select,dialog,.days,.tablebox,[contenteditable]");
