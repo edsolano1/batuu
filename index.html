@@ -129,7 +129,7 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal)}
 .day small{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em}
 .day[aria-selected="true"]{border-color:var(--amber);background:var(--amber-soft);color:var(--amber)}
 .day[aria-selected="true"] b{color:var(--amber)}
-.day .tag{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+.day .tag{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dc)}
 .empty{color:var(--muted);font-size:14px;border:1px dashed var(--line);border-radius:8px;padding:14px;margin:0}
 
 .two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px}
@@ -271,8 +271,8 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   .day b{font-size:14px}
   .day small{font-size:13px;font-family:var(--f-display);font-weight:600;color:var(--ink)}
   .day[aria-selected="true"] small{color:var(--amber)}
-  .day.park{border-color:rgba(95,208,176,.5)}
-  .day.park::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--teal);margin-top:2px}
+  .day::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--dc);opacity:.55;margin-top:2px}
+  .day[aria-selected="true"]::after{opacity:1}
   .timeline{padding:12px 10px 10px;gap:6px}
   .timeline .sec-head .eyebrow{display:none}
   .timeline h2{font-size:15px}
@@ -445,14 +445,14 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   function pickDay(){ const days=tripDays(); const saved=local.get("day",null); const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/New_York"});
     curDay=days.includes(curDay)?curDay:days.includes(saved)?saved:days.includes(today)?today:settings.parkDay; }
   const THEMES={
-    "2026-10-07":{bg:"flight",eye:"Phoenix to Tampa",title:"Flying <span>out</span>",c:"#5fb4f2",dim:"#24557a",soft:"rgba(95,180,242,.12)"},
-    "2026-10-08":{bg:"waves",eye:"Lutz",title:"Recovery <span>day</span>",c:"#7fd6a8",dim:"#2f6b52",soft:"rgba(127,214,168,.12)"},
-    "2026-10-10":{bg:"stage",eye:"Tampa",title:"Party <span>day</span>",c:"#ff4fa3",dim:"#7a2450",soft:"rgba(255,79,163,.12)"},
-    "2026-10-11":{bg:"bokeh",eye:"Lutz",title:"Free <span>day</span>",c:"#b58cf0",dim:"#4f3b78",soft:"rgba(181,140,240,.12)"},
-    "2026-10-12":{bg:"dusk",eye:"Tampa to Phoenix",title:"Fly <span>back</span>",c:"#ff8a5c",dim:"#7a3d24",soft:"rgba(255,138,92,.12)"}
+    "2026-10-07":{tag:"Flight",bg:"flight",eye:"Phoenix to Tampa",title:"Flying <span>out</span>",c:"#5fb4f2",dim:"#24557a",soft:"rgba(95,180,242,.12)"},
+    "2026-10-08":{tag:"Rest",bg:"waves",eye:"Lutz",title:"Recovery <span>day</span>",c:"#7fd6a8",dim:"#2f6b52",soft:"rgba(127,214,168,.12)"},
+    "2026-10-10":{tag:"Party",bg:"stage",eye:"Tampa",title:"Party <span>day</span>",c:"#ff4fa3",dim:"#7a2450",soft:"rgba(255,79,163,.12)"},
+    "2026-10-11":{tag:"Free",bg:"bokeh",eye:"Lutz",title:"Free <span>day</span>",c:"#b58cf0",dim:"#4f3b78",soft:"rgba(181,140,240,.12)"},
+    "2026-10-12":{tag:"Flight",bg:"dusk",eye:"Tampa to Phoenix",title:"Fly <span>back</span>",c:"#ff8a5c",dim:"#7a3d24",soft:"rgba(255,138,92,.12)"}
   };
 
-  const BATUU={eye:$("heroEye").innerHTML,title:$("heroTitle").innerHTML,lede:$("heroLede").innerHTML,c:"#f2a541",dim:"#7a5420",soft:"rgba(242,165,65,.12)"};
+  const BATUU={tag:"Batuu",eye:$("heroEye").innerHTML,title:$("heroTitle").innerHTML,lede:$("heroLede").innerHTML,c:"#f2a541",dim:"#7a5420",soft:"rgba(242,165,65,.12)"};
   function applyTheme(){
     const t=(curDay&&THEMES[curDay])||BATUU, r=document.documentElement.style;
     r.setProperty("--amber",t.c); r.setProperty("--amber-dim",t.dim); r.setProperty("--amber-soft",t.soft);
@@ -462,9 +462,9 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   }
   function renderDays(){
     pickDay();
-    $("dayTabs").innerHTML=tripDays().map(d=>{ const n=stops.filter(s=>stopDay(s)===d).length; const tag=d===settings.parkDay?"Batuu":(flights.some(f=>String(f.depart).slice(0,10)===d||String(f.arrive).slice(0,10)===d)?"Travel":"");
-      return '<button type="button" class="day'+(d===settings.parkDay?" park":"")+'" role="tab" aria-selected="'+(d===curDay)+'" data-day="'+d+'"><span class="tag">'+(tag||"&nbsp;")+'</span><b>'+dayName(d)+'</b><small><span class="mon">'+dayDate(d).split(" ")[0]+' </span>'+dayDate(d).split(" ").slice(1).join(" ")+'<span class="cnt"> · '+n+' stop'+(n===1?"":"s")+'</span></small></button>'; }).join("");
-    $("logTitle").textContent=curDay===settings.parkDay?"Batuu day":dayName(curDay)+", "+dayDate(curDay); $("dayTitle").textContent=(curDay===settings.parkDay?"Batuu day":dayName(curDay)+", "+dayDate(curDay))+" at a glance";
+    $("dayTabs").innerHTML=tripDays().map(d=>{ const n=stops.filter(s=>stopDay(s)===d).length; const th=THEMES[d]||BATUU, tag=th.tag||"";
+      return '<button type="button" class="day" style="--dc:'+th.c+'" role="tab" aria-selected="'+(d===curDay)+'" data-day="'+d+'"><span class="tag">'+(tag||"&nbsp;")+'</span><b>'+dayName(d)+'</b><small><span class="mon">'+dayDate(d).split(" ")[0]+' </span>'+dayDate(d).split(" ").slice(1).join(" ")+'<span class="cnt"> · '+n+' stop'+(n===1?"":"s")+'</span></small></button>'; }).join("");
+    $("logTitle").textContent="The plan"; $("dayTitle").textContent="At a glance";
     applyTheme();
   }
   const money=n=>"$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
