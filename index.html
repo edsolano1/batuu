@@ -85,8 +85,8 @@ textarea{resize:vertical;min-height:72px;width:100%}
 .track-scroll{overflow-x:auto}
 .track{position:relative;height:100px;min-width:760px}
 .rail{position:absolute;left:0;right:0;top:46px;height:6px;border-radius:3px;background:var(--bg2)}
-.seg{position:absolute;top:46px;height:6px;border-radius:3px;opacity:.85}
-.seg.drive{background:#3a4654}.seg.ride{background:var(--amber)}.seg.food{background:var(--teal)}.seg.free{background:#7c8a99}.seg.show{background:#b58cf0}
+.seg{position:absolute;top:45px;height:8px;border-radius:4px;opacity:1;box-shadow:0 0 0 2px var(--panel)}
+.seg.drive,.legend i.drive{background:repeating-linear-gradient(135deg,#c9d6e6 0 3px,#6d7f94 3px 6px)}.seg.ride{background:var(--amber)}.seg.food{background:var(--teal)}.seg.free,.legend i.free{background:var(--panel);box-shadow:inset 0 0 0 1.5px #cfd8e2,0 0 0 2px var(--panel)}.seg.show{background:#b58cf0}
 .seg.fixed{opacity:1;top:42px;height:14px;border-radius:4px;box-shadow:0 0 0 2px var(--bg),0 0 12px var(--teal)}
 .tick{position:absolute;top:62px;font-family:var(--f-mono);font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
 .tick::before{content:"";position:absolute;left:50%;top:-8px;width:1px;height:6px;background:var(--line)}
@@ -98,7 +98,7 @@ textarea{resize:vertical;min-height:72px;width:100%}
 .nowline{position:absolute;top:-4px;bottom:24px;width:2px;background:var(--red);box-shadow:0 0 8px var(--red)}
 .nowline::before{content:"NOW";position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:10px;color:var(--red)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted)}
-.legend i{display:inline-block;width:12px;height:6px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.legend i{display:inline-block;width:14px;height:8px;border-radius:4px;margin-right:6px;vertical-align:middle}
 
 .tablebox{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:1120px}
@@ -260,6 +260,10 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
 .fd{display:inline-flex;color:var(--amber)}
 .fd .ico{width:14px;height:14px;margin:0}
 .scard .sub .fd{flex:none}
+td.notes .tlink{white-space:nowrap;font-size:12.5px;margin-left:6px}
+.scard dd.links{display:flex;gap:8px;flex-wrap:wrap}
+.scard dd.links a{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;font-size:13px;text-decoration:none;color:var(--amber)}
+.scard dd.links svg{width:12px;height:12px}
 .scard .sub .ar{overflow:hidden;text-overflow:ellipsis}
 td.drink .fd{margin-right:6px}
 .scard dl{padding:2px 10px 10px 10px}
@@ -331,10 +335,10 @@ td.drink .fd{margin-right:6px}
     <div class="sec-head"><h2 id="dayTitle">The day at a glance</h2><span class="eyebrow">Loose windows</span></div>
     <div class="track-scroll"><div class="track" id="track"></div></div>
     <div class="legend">
-      <span><i style="background:#3a4654"></i>Travel</span>
+      <span><i class="drive"></i>Travel</span>
       <span><i style="background:var(--amber)"></i>Rides</span>
       <span><i style="background:var(--teal)"></i>Food and drinks</span>
-      <span><i style="background:#7c8a99"></i>Wander</span>
+      <span><i class="free"></i>Wander</span>
       <span><i style="background:#b58cf0"></i>Shows</span>
       <span><i style="background:var(--teal);height:10px"></i>Fixed reservation</span>
     </div>
@@ -448,6 +452,10 @@ td.drink .fd{margin-right:6px}
   const hasDrink=s=>s.drink===true||(typeof s.drink==="string"&&s.drink.trim()!==""&&!/^(water|done)/i.test(s.drink.trim()));
   const hasFood=s=>s.eat===true||(s.eat===undefined&&(s.kind==="food"||/\b(breakfast|brunch|lunch|dinner|eat|food)\b/i.test(String(s.stop||""))));
   const fdIcons=s=>(hasFood(s)?'<span class="fd" title="Food here">'+FOOD_ICO+'</span>':'')+(hasDrink(s)?'<span class="fd" title="Drinks here">'+DRINK_ICO+'</span>':'');
+  const safeUrl=u=>/^https?:\/\//i.test(String(u||"").trim())?String(u).trim():"";
+  const LINK_ICO='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function linkRow(s){ const a=[[safeUrl(s.link),"Website"],[safeUrl(s.menu),"Menu"]].filter(x=>x[0]); if(!a.length) return "";
+    return '<dt>Links</dt><dd class="links">'+a.map(x=>'<a href="'+esc(x[0])+'" target="_blank" rel="noopener">'+x[1]+LINK_ICO+'</a>').join("")+'</dd>'; }
   const BOLT='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="currentColor"/></svg>';
   function iconFor(s){ const n=String(s.stop||""); if(/\b(fly|land|flight)\b/i.test(n)) return ICON.plane; if(/waymo|drive|uber|lyft/i.test(n)) return ICON.car; if(/security|check in/i.test(n)) return ICON.bag; if(/\b(rest|sleep|nap)\b/i.test(n)) return ICON.bed; return ""; }
   const dayStops=()=>stops.filter(s=>stopDay(s)===curDay);
@@ -502,7 +510,7 @@ td.drink .fd{margin-right:6px}
         '<td class="time">'+esc(s.win||clock(s.s))+(s.fixed?'<span class="fx">FIXED</span>':'<span class="clk">about '+clock(s.s)+'</span>')+'</td>'+
         '<td><span class="stop">'+esc(s.stop)+'</span><span class="area">'+esc(s.area)+'</span></td>'+
         '<td>'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+'</td>'+
-        '<td>'+esc(s.allow)+'</td><td class="cost">'+esc(s.cost)+'</td><td class="drink">'+fdIcons(s)+'</td><td class="notes">'+esc(s.notes)+'</td>'+
+        '<td>'+esc(s.allow)+'</td><td class="cost">'+esc(s.cost)+'</td><td class="drink">'+fdIcons(s)+'</td><td class="notes">'+esc(s.notes)+[[safeUrl(s.link),"Website"],[safeUrl(s.menu),"Menu"]].filter(x=>x[0]).map(x=>' <a class="tlink" href="'+esc(x[0])+'" target="_blank" rel="noopener">'+x[1]+'</a>').join("")+'</td>'+
         '<td class="edit-only"><button type="button" class="small" data-edit="stops" data-id="'+esc(key)+'">Edit</button></td></tr>';
     }).join("");
     $("cardList").innerHTML=list.map((s,ix)=>{
@@ -512,7 +520,7 @@ td.drink .fd{margin-right:6px}
         '<div class="sky" style="--c1:'+SKY[ph]+';--c2:'+SKY[ph2]+'" title="'+ph+'"><i>'+SKY_ICON[ph]+'</i></div>'+
         '<details><summary>'+
         '<span class="nm"><span class="stop">'+iconFor(s)+esc(s.stop)+'</span><span class="sub"><span class="when">'+(s.tlabel?esc(s.tlabel):clock(s.s).replace(" ","&nbsp;"))+'</span>'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+fdIcons(s)+(s.area?'<span class="ar">'+esc(s.area)+'</span>':'')+'</span></span></summary>'+
-        '<dl>'+more.map(x=>'<dt>'+x[0]+'</dt><dd class="'+x[2]+'">'+esc(x[1])+'</dd>').join("")+'</dl><div class="actions edit-only"><button type="button" data-edit="stops" data-id="'+esc(key)+'">Edit this stop</button></div></details>'+
+        '<dl>'+more.map(x=>'<dt>'+x[0]+'</dt><dd class="'+x[2]+'">'+esc(x[1])+'</dd>').join("")+linkRow(s)+'</dl><div class="actions edit-only"><button type="button" data-edit="stops" data-id="'+esc(key)+'">Edit this stop</button></div></details>'+
         '<label class="chk"><input type="checkbox" aria-label="Mark '+esc(s.stop)+' done"'+(done[key]?" checked":"")+'></label></li>';
     }).join("");
     applyWriteState();
@@ -589,7 +597,7 @@ td.drink .fd{margin-right:6px}
       {k:"acc",l:"Access",t:"select",opts:Object.fromEntries(Object.entries(ACCESS).map(([k,v])=>[k,v[0]]))},
       {k:"kind",l:"Timeline color",t:"select",opts:KINDS},
       {k:"allow",l:"Allow",t:"text"},{k:"cost",l:"Est. cost",t:"text"},
-      {k:"eat",l:"Food here",t:"check"},{k:"drink",l:"Drinks here",t:"check"},{k:"notes",l:"Notes",t:"textarea",full:true},
+      {k:"eat",l:"Food here",t:"check"},{k:"drink",l:"Drinks here",t:"check"},{k:"notes",l:"Notes",t:"textarea",full:true},{k:"link",l:"Website link",t:"text",ph:"https://"},{k:"menu",l:"Menu link",t:"text",ph:"https://"},
       {k:"short",l:"Timeline label (short)",t:"text"},{k:"fixed",l:"Fixed time reservation",t:"check"}],
       blank:{day:"",stop:"",s:720,d:30,win:"",area:"",acc:"free",kind:"free",allow:"",cost:"",drink:false,notes:"",short:"",fixed:false}},
     flights:{title:"flight",fields:[
@@ -796,6 +804,32 @@ td.drink .fd{margin-right:6px}
       b.set(db.collection("costs").doc("c5"),{"label": "Drinks in the park (optional)"},{merge:true});
       b.set(db.doc("settings/trip"),{mig7:true},{merge:true});
       await b.commit(); } }catch(e){}
+    try{ const t=await db.doc("settings/trip").get(); if(t.exists&&!t.data().mig8){
+      const b=db.batch(); const ids=new Set((await db.collection("stops").get()).docs.map(d=>d.id));
+      if(ids.has("d07-waymo")) b.set(db.collection("stops").doc("d07-waymo"),{"link":"https://waymo.com/","menu":""},{merge:true});
+      if(ids.has("d07-air")) b.set(db.collection("stops").doc("d07-air"),{"link":"https://www.skyharbor.com/","menu":""},{merge:true});
+      if(ids.has("d07-fly")) b.set(db.collection("stops").doc("d07-fly"),{"link":"https://www.aa.com/travelInformation/flights/status","menu":""},{merge:true});
+      if(ids.has("d08-land")) b.set(db.collection("stops").doc("d08-land"),{"link":"https://www.tampaairport.com/","menu":""},{merge:true});
+      if(ids.has("d12-drive")) b.set(db.collection("stops").doc("d12-drive"),{"link":"https://www.tampaairport.com/","menu":""},{merge:true});
+      if(ids.has("d12-fly")) b.set(db.collection("stops").doc("d12-fly"),{"link":"https://www.aa.com/travelInformation/flights/status","menu":""},{merge:true});
+      if(ids.has("d12-land")) b.set(db.collection("stops").doc("d12-land"),{"link":"https://www.skyharbor.com/","menu":""},{merge:true});
+      if(ids.has("b01")) b.set(db.collection("stops").doc("b01"),{"link":"https://disneyworld.disney.go.com/destinations/hollywood-studios/","menu":""},{merge:true});
+      if(ids.has("b02")) b.set(db.collection("stops").doc("b02"),{"link":"https://disneyworld.disney.go.com/guest-services/parking/","menu":""},{merge:true});
+      if(ids.has("b05")) b.set(db.collection("stops").doc("b05"),{"link":"https://disneyworld.disney.go.com/attractions/hollywood-studios/star-wars-rise-of-the-resistance/","menu":""},{merge:true});
+      if(ids.has("b04")) b.set(db.collection("stops").doc("b04"),{"link":"https://disneyworld.disney.go.com/attractions/hollywood-studios/millennium-falcon-smugglers-run/","menu":""},{merge:true});
+      if(ids.has("b03")) b.set(db.collection("stops").doc("b03"),{"link":"https://disneyworld.disney.go.com/attractions/hollywood-studios/twilight-zone-tower-of-terror/","menu":""},{merge:true});
+      if(ids.has("b03b")) b.set(db.collection("stops").doc("b03b"),{"link":"https://disneyworld.disney.go.com/attractions/hollywood-studios/rock-and-roller-coaster-starring-muppets/","menu":""},{merge:true});
+      if(ids.has("b06")) b.set(db.collection("stops").doc("b06"),{"link":"https://disneyworld.disney.go.com/dining/hollywood-studios/docking-bay-7-food-and-cargo/","menu":"https://disneyworld.disney.go.com/dining/hollywood-studios/docking-bay-7-food-and-cargo/menus/"},{merge:true});
+      if(ids.has("b07")) b.set(db.collection("stops").doc("b07"),{"link":"https://disneyworld.disney.go.com/destinations/hollywood-studios/star-wars-galaxys-edge/","menu":""},{merge:true});
+      if(ids.has("b08")) b.set(db.collection("stops").doc("b08"),{"link":"https://disneyworld.disney.go.com/dining/hollywood-studios/ogas-cantina/","menu":"https://disneyworld.disney.go.com/dining/hollywood-studios/ogas-cantina/menus/"},{merge:true});
+      if(ids.has("b09")) b.set(db.collection("stops").doc("b09"),{"link":"https://disneyworld.disney.go.com/attractions/hollywood-studios/star-tours/","menu":""},{merge:true});
+      if(ids.has("b09b")) b.set(db.collection("stops").doc("b09b"),{"link":"https://disneyworld.disney.go.com/entertainment/hollywood-studios/indiana-jones-epic-stunt-spectacular/","menu":""},{merge:true});
+      if(ids.has("b10")) b.set(db.collection("stops").doc("b10"),{"link":"https://disneyworld.disney.go.com/attractions/hollywood-studios/","menu":""},{merge:true});
+      if(ids.has("b11")) b.set(db.collection("stops").doc("b11"),{"link":"https://disneyworld.disney.go.com/dining/hollywood-studios/","menu":""},{merge:true});
+      if(ids.has("b12")) b.set(db.collection("stops").doc("b12"),{"link":"https://disneyworld.disney.go.com/destinations/hollywood-studios/star-wars-galaxys-edge/","menu":""},{merge:true});
+      if(ids.has("b13")) b.set(db.collection("stops").doc("b13"),{"link":"https://disneyworld.disney.go.com/entertainment/hollywood-studios/fantasmic/","menu":""},{merge:true});
+      b.set(db.doc("settings/trip"),{mig8:true},{merge:true});
+      await b.commit(); } }catch(e){}
     // Changes queued by Claude in changes.json are applied once, the first time anyone opens the site after they land
     try{
       const res=await fetch("changes.json?ts="+Date.now(),{cache:"no-store"}); const queue=res.ok?await res.json():[];
@@ -804,7 +838,7 @@ td.drink .fd{margin-right:6px}
       if(todo.length){
         const snap=async col=>(await db.collection(col).get()).docs.map(x=>Object.assign({_id:x.id},x.data()));
         const live={stops:await snap("stops"),costs:await snap("costs"),flights:await snap("flights")}, sugg=await snap("suggestions");
-        const OK={stops:["day","stop","s","d","win","area","acc","kind","allow","cost","drink","eat","notes","short","tlabel"],costs:["label","price","priceMax","perPerson","taxed"],flights:["airline","flight","from","to","depart","arrive","fromTz","toTz","who","notes"]};
+        const OK={stops:["day","stop","s","d","win","area","acc","kind","allow","cost","drink","eat","notes","short","tlabel","link","menu"],costs:["label","price","priceMax","perPerson","taxed"],flights:["airline","flight","from","to","depart","arrive","fromTz","toTz","who","notes"]};
         const clean=(col,f)=>{const o={};(OK[col]||[]).forEach(k=>{ if(f&&f[k]!==undefined) o[k]=(typeof f[k]==="string")?f[k].slice(0,300):f[k]; }); if(col==="stops"&&o.s!==undefined){o.s=Math.max(0,Math.min(1439,Math.round(+o.s||0)));o.order=o.s;} if(col==="costs"&&o.price!==undefined) o.price=+o.price||0; return o;};
         const locked=x=>x&&(x.fixed||/^drive home$/i.test(String(x.stop||"").trim()));
         const find=(col,op)=>{ const list=live[col]||[]; if(op.id) return list.find(x=>x._id===op.id); const m=op.match||{}; const key=String(m.stop||m.label||"").toLowerCase(); if(!key) return null;
