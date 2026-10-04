@@ -295,7 +295,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   <div class="hero-inner">
     <span class="eyebrow" id="heroEye">Disney's Hollywood Studios · <b>Black Spire Outpost, Batuu</b></span>
     <h1 id="heroTitle">One day on <span>Batuu</span></h1>
-    <p class="lede" id="heroLede">A relaxed, all day Galaxy's Edge visit for the crew. Rise of the Resistance, the Millennium Falcon, Tower of Terror, a round at Oga's Cantina, and Fantasmic to close the night. Anyone on the crew can edit the plan below.</p>
+    <p class="lede" id="heroLede" hidden></p>
     <div class="count" aria-live="polite">
       <span class="count-label" id="countLabel">Loading</span>
       <div class="digits" id="digits"></div>
@@ -435,18 +435,18 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   function pickDay(){ const days=tripDays(); const saved=local.get("day",null); const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/New_York"});
     curDay=days.includes(curDay)?curDay:days.includes(saved)?saved:days.includes(today)?today:settings.parkDay; }
   const THEMES={
-    "2026-10-07":{bg:"flight",eye:"Phoenix to Tampa",c:"#5fb4f2",dim:"#24557a",soft:"rgba(95,180,242,.12)"},
-    "2026-10-08":{bg:"waves",eye:"Lutz",c:"#7fd6a8",dim:"#2f6b52",soft:"rgba(127,214,168,.12)"},
+    "2026-10-07":{bg:"flight",eye:"Phoenix to Tampa",title:"Flying <span>out</span>",c:"#5fb4f2",dim:"#24557a",soft:"rgba(95,180,242,.12)"},
+    "2026-10-08":{bg:"waves",eye:"Lutz",title:"Recovery <span>day</span>",c:"#7fd6a8",dim:"#2f6b52",soft:"rgba(127,214,168,.12)"},
     "2026-10-10":{bg:"stage",eye:"Tampa",c:"#ff4fa3",dim:"#7a2450",soft:"rgba(255,79,163,.12)"},
     "2026-10-11":{bg:"bokeh",eye:"Lutz",c:"#b58cf0",dim:"#4f3b78",soft:"rgba(181,140,240,.12)"},
-    "2026-10-12":{bg:"dusk",eye:"Tampa to Phoenix",c:"#ff8a5c",dim:"#7a3d24",soft:"rgba(255,138,92,.12)"}
+    "2026-10-12":{bg:"dusk",eye:"Tampa to Phoenix",title:"Fly <span>back</span>",c:"#ff8a5c",dim:"#7a3d24",soft:"rgba(255,138,92,.12)"}
   };
 
   const BATUU={eye:$("heroEye").innerHTML,title:$("heroTitle").innerHTML,lede:$("heroLede").innerHTML,c:"#f2a541",dim:"#7a5420",soft:"rgba(242,165,65,.12)"};
   function applyTheme(){
     const t=(curDay&&THEMES[curDay])||BATUU, r=document.documentElement.style;
     r.setProperty("--amber",t.c); r.setProperty("--amber-dim",t.dim); r.setProperty("--amber-soft",t.soft);
-    const ttl=t.title||(new Date(curDay+"T12:00:00Z").toLocaleDateString([],{weekday:"long",timeZone:"UTC"})+' <span>'+dayDate(curDay)+'</span>'); $("heroEye").innerHTML=t.eye; $("heroTitle").innerHTML=ttl; $("heroLede").innerHTML=t.lede||""; $("heroLede").hidden=!t.lede;
+    const ttl=t.title||(new Date(curDay+"T12:00:00Z").toLocaleDateString([],{weekday:"long",timeZone:"UTC"})+' <span>'+dayDate(curDay)+'</span>'); $("heroEye").innerHTML=(t.title&&t!==BATUU)?new Date(curDay+"T12:00:00Z").toLocaleDateString([],{weekday:"long",month:"short",day:"numeric",timeZone:"UTC"})+" · <b>"+t.eye+"</b>":t.eye; $("heroTitle").innerHTML=ttl; $("heroLede").innerHTML=t.lede||""; $("heroLede").hidden=!t.lede;
     document.title=(t===BATUU?"Batuu Day Planner":ttl.replace(/<[^>]+>/g,"")+" · Batuu Day Planner");
     window.__starTint=t.c; window.__bgWant=t.bg||"stars"; if(window.__setBg) window.__setBg(window.__bgWant);
   }
