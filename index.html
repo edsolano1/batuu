@@ -727,7 +727,8 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       e.preventDefault(); const text=$("suggText").value.trim(), name=$("suggName").value.trim().slice(0,40);
       if(!text){msg.textContent="Type a suggestion first.";return;}
       local.set("name",name); send.disabled=true; msg.textContent="Posting…";
-      try{ await col.add({text,type:$("suggType").value,name,status:"new",reply:"",createdAt:new Date().toISOString()}); $("suggText").value=""; msg.textContent="Posted for the whole crew."; }
+      try{ const type=$("suggType").value; await col.add({text,type,name,status:"new",reply:"",createdAt:new Date().toISOString()}); $("suggText").value=""; msg.textContent="Posted for the whole crew.";
+        fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({access_key:"2532f8e4-9583-4779-a167-e340ef525c5d",subject:"New Batuu idea from "+(name||"the crew"),from_name:"Batuu Planner",name:name||"Someone in the crew",type:type,message:text+"\n\nOpen the planner: https://edsolano1.github.io/batuu/"})}).catch(()=>{}); }
       catch(err){ msg.textContent=writeError(err); }
       send.disabled=false;
     });
