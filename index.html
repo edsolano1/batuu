@@ -40,14 +40,14 @@ h1 span{color:var(--amber)}
 @media (prefers-reduced-motion: reduce){.wrap.swl [data-view="plan"],.wrap.swr [data-view="plan"]{animation:none}}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .hero-top .eyebrow{flex:1;min-width:0;padding-top:2px}
-.count{flex:none;display:grid;gap:3px;justify-items:end;background:rgba(18,24,32,.8);border:1px solid var(--line);border-radius:10px;padding:7px 10px 6px;backdrop-filter:blur(4px)}
-.count-label{display:flex;align-items:center;gap:4px;font-family:var(--f-mono);font-weight:500;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);white-space:nowrap}
-.count-label svg{width:11px;height:11px;flex:none;margin:0;vertical-align:0;display:block}
+.count{flex:none;display:grid;gap:3px;justify-items:end;background:rgba(18,24,32,.8);border:1px solid var(--line);border-radius:10px;padding:5px 8px 4px;backdrop-filter:blur(4px)}
+.count-label{display:flex;align-items:center;gap:3px;font-family:var(--f-mono);font-weight:500;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);white-space:nowrap}
+.count-label svg{width:9px;height:9px;flex:none;margin:0;vertical-align:0;display:block}
 #countIco,#countIco2{display:flex}
-.digits{display:flex;flex-wrap:nowrap;gap:6px}
+.digits{display:flex;flex-wrap:nowrap;gap:5px}
 .cell{display:flex;align-items:baseline;gap:1px}
-.cell .n{font-family:var(--f-mono);font-size:17px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
-.cell .u{font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.cell .n{font-family:var(--f-mono);font-size:15px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cell .u{font-family:var(--f-mono);font-size:9px;color:var(--muted)}
 .count-sub{color:var(--muted);font-size:14px}
 
 .wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:28px 56px;display:grid;gap:28px}
@@ -211,7 +211,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   h1{font-size:clamp(34px,11vw,52px)}
   h2{font-size:19px}
   .eyebrow{font-size:10.5px}
-  .cell .n{font-size:15px}
+  .cell .n{font-size:13px}
   .count-sub{font-size:13px}
   .wrap{padding-block:16px calc(96px + env(safe-area-inset-bottom, 0px));gap:18px}
   .day{min-width:64px;padding:6px 10px;gap:0}
@@ -300,7 +300,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
 <header class="hero">
   <div class="hero-inner">
     <div class="hero-top">
-    <span class="eyebrow" id="heroEye">Disney's Hollywood Studios · <b>Black Spire Outpost, Batuu</b></span>
+    <span class="eyebrow" id="heroEye">Hollywood Studios</span>
     <div class="count" aria-live="polite">
       <span class="count-label"><span id="countIco"></span><span id="countLabel">Loading</span><span id="countIco2"></span></span>
       <div class="digits" id="digits"></div>
@@ -447,8 +447,8 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   const THEMES={
     "2026-10-07":{bg:"flight",eye:"Phoenix to Tampa",title:"Flying <span>out</span>",c:"#5fb4f2",dim:"#24557a",soft:"rgba(95,180,242,.12)"},
     "2026-10-08":{bg:"waves",eye:"Lutz",title:"Recovery <span>day</span>",c:"#7fd6a8",dim:"#2f6b52",soft:"rgba(127,214,168,.12)"},
-    "2026-10-10":{bg:"stage",eye:"Tampa",c:"#ff4fa3",dim:"#7a2450",soft:"rgba(255,79,163,.12)"},
-    "2026-10-11":{bg:"bokeh",eye:"Lutz",c:"#b58cf0",dim:"#4f3b78",soft:"rgba(181,140,240,.12)"},
+    "2026-10-10":{bg:"stage",eye:"Tampa",title:"Party <span>day</span>",c:"#ff4fa3",dim:"#7a2450",soft:"rgba(255,79,163,.12)"},
+    "2026-10-11":{bg:"bokeh",eye:"Lutz",title:"Free <span>day</span>",c:"#b58cf0",dim:"#4f3b78",soft:"rgba(181,140,240,.12)"},
     "2026-10-12":{bg:"dusk",eye:"Tampa to Phoenix",title:"Fly <span>back</span>",c:"#ff8a5c",dim:"#7a3d24",soft:"rgba(255,138,92,.12)"}
   };
 
@@ -456,7 +456,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   function applyTheme(){
     const t=(curDay&&THEMES[curDay])||BATUU, r=document.documentElement.style;
     r.setProperty("--amber",t.c); r.setProperty("--amber-dim",t.dim); r.setProperty("--amber-soft",t.soft);
-    const ttl=t.title||(new Date(curDay+"T12:00:00Z").toLocaleDateString([],{weekday:"long",timeZone:"UTC"})+' <span>'+dayDate(curDay)+'</span>'); $("heroEye").innerHTML=(t.title&&t!==BATUU)?new Date(curDay+"T12:00:00Z").toLocaleDateString([],{weekday:"long",month:"short",day:"numeric",timeZone:"UTC"})+" · <b>"+t.eye+"</b>":t.eye; $("heroTitle").innerHTML=ttl; $("heroLede").innerHTML=t.lede||""; $("heroLede").hidden=!t.lede;
+    const ttl=t.title||(new Date(curDay+"T12:00:00Z").toLocaleDateString([],{weekday:"long",timeZone:"UTC"})+' <span>'+dayDate(curDay)+'</span>'); $("heroEye").innerHTML=t.eye; $("heroTitle").innerHTML=ttl; $("heroLede").innerHTML=t.lede||""; $("heroLede").hidden=!t.lede;
     document.title=(t===BATUU?"Batuu Day Planner":ttl.replace(/<[^>]+>/g,"")+" · Batuu Day Planner");
     window.__starTint=t.c; window.__bgWant=t.bg||"stars"; if(window.__setBg) window.__setBg(window.__bgWant);
   }
