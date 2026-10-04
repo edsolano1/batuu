@@ -485,7 +485,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
     dayStops().forEach(s=>{const a=s.s,b=s.s+(s.d||30); html+='<div class="seg '+esc(s.kind||"free")+(s.fixed?" fixed":"")+'" style="left:'+pct(a)+'%;width:'+Math.max(.4,pct(b)-pct(a))+'%" title="'+esc(s.stop)+'"></div>';});
     for(let m=Math.ceil(a0/120)*120;m<=a1;m+=120) html+='<span class="tick" style="left:'+pct(m)+'%">'+clock(m).replace(":00","")+'</span>';
     let row=0;
-    dayStops().forEach(s=>{ if(["ride","food","show"].includes(s.kind)||s.fixed){ const lbl=s.short||String(s.stop||"").slice(0,14); html+='<span class="flag r'+row+(s.fixed?" fixed":"")+'" style="left:'+pct(s.s+(s.d||30)/2)+'%">'+esc(lbl)+'</span>'; row=(row+1)%3; } });
+    dayStops().forEach(s=>{ if(["ride","food","show"].includes(s.kind)||s.fixed||curDay!==settings.parkDay){ const lbl=s.short||String(s.stop||"").slice(0,14); html+='<span class="flag r'+row+(s.fixed?" fixed":"")+'" style="left:'+pct(s.s+(s.d||30)/2)+'%">'+esc(lbl)+'</span>'; row=(row+1)%3; } });
     html+='<div class="nowline" id="nowline" hidden></div>';
     $("track").innerHTML=html;
   }
