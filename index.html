@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Batuu Day Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a night hangar departure board. Hero countdown over a slow starfield, flights, a scaled day timeline, the editable flight plan, per person ledger, checklist and suggestion box. Single dark look by choice, amber landing lights. */
+:root{
+  color-scheme:dark;
+  --bg:#0c1016; --bg2:#121820; --panel:#161d26; --ink:#e8ecf0; --muted:#93a0ad; --line:#26313d;
+  --amber:#f2a541; --amber-dim:#7a5420; --amber-soft:rgba(242,165,65,.12); --amber-ink:#1a1206;
+  --teal:#5fd0b0; --red:#e2554a; --done:#56626e; --scrim:rgba(5,8,12,.72);
+  --f-display:"Chakra Petch","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+a{color:var(--amber)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:radial-gradient(120% 90% at 80% 0%, rgba(27,37,50,.85) 0%, rgba(12,16,22,0) 60%)}
+#stars{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:0}
+.hero,.wrap{position:relative;z-index:1}
+.hero-inner{position:relative;max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:40px 36px;display:grid;gap:22px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.eyebrow b{color:var(--amber);font-weight:500}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,8vw,84px);line-height:.95;margin:0;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+h1 span{color:var(--amber)}
+.lede{margin:0;color:var(--muted);max-width:62ch;font-size:16px}
+.count{display:grid;gap:10px}
+.count-label{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.digits{display:flex;flex-wrap:wrap;gap:10px}
+.cell{background:rgba(22,29,38,.85);border:1px solid var(--line);border-radius:8px;padding:10px 14px 8px;min-width:84px;display:grid;justify-items:center;gap:2px}
+.cell .n{font-family:var(--f-mono);font-size:clamp(30px,6vw,48px);font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+.cell .u{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.count-sub{color:var(--muted);font-size:14px}
+
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:28px 56px;display:grid;gap:28px}
+h2{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0;letter-spacing:.04em;text-transform:uppercase}
+.sec{display:grid;gap:12px}
+.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.sec-head .right{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{font-size:13px;color:var(--muted);min-height:1.2em}
+
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--bg2);color:var(--ink);padding:6px 10px}
+button:hover{border-color:var(--amber);color:var(--amber)}
+button.primary{background:var(--amber);color:var(--amber-ink);border-color:var(--amber);font-weight:600}
+button.primary:hover{color:var(--amber-ink);filter:brightness(1.08)}
+button.danger{color:var(--red);border-color:var(--red)}
+button.small{padding:3px 8px;font-size:12.5px}
+button[disabled]{opacity:.5;cursor:not-allowed}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;box-sizing:border-box}
+textarea{resize:vertical;min-height:72px;width:100%}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.field{display:grid;gap:4px;min-width:0}
+.field label,.field .lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+.flights{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.flight{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:8px;min-width:0}
+.flight .top{display:flex;justify-content:space-between;gap:8px;align-items:center;font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.flight .route{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.flight .code{font-family:var(--f-display);font-weight:700;font-size:30px;line-height:1}
+.flight .t{font-family:var(--f-mono);font-size:13px;color:var(--amber)}
+.flight .line{height:1px;background:repeating-linear-gradient(90deg,var(--amber-dim) 0 6px,transparent 6px 12px);position:relative}
+.flight .line::after{content:"✈";position:absolute;left:50%;top:50%;transform:translate(-50%,-55%);color:var(--amber);font-size:14px;background:var(--panel);padding:0 4px}
+.flight .who{font-size:13px;color:var(--muted)}
+
+.timeline{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 16px 14px;display:grid;gap:10px}
+.track-scroll{overflow-x:auto}
+.track{position:relative;height:100px;min-width:760px}
+.rail{position:absolute;left:0;right:0;top:46px;height:6px;border-radius:3px;background:var(--bg2)}
+.seg{position:absolute;top:46px;height:6px;border-radius:3px;opacity:.85}
+.seg.drive{background:#3a4654}.seg.ride{background:var(--amber)}.seg.food{background:var(--teal)}.seg.free{background:#7c8a99}.seg.show{background:#b58cf0}
+.seg.fixed{opacity:1;top:42px;height:14px;border-radius:4px;box-shadow:0 0 0 2px var(--bg),0 0 12px var(--teal)}
+.tick{position:absolute;top:62px;font-family:var(--f-mono);font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+.tick::before{content:"";position:absolute;left:50%;top:-8px;width:1px;height:6px;background:var(--line)}
+.flag{position:absolute;top:0;transform:translateX(-50%);font-family:var(--f-mono);font-size:10.5px;white-space:nowrap}
+.flag.alt{top:20px}
+.flag.fixed{color:var(--teal);font-weight:500}
+.flag::after{content:"";position:absolute;left:50%;top:14px;width:1px;height:32px;background:var(--amber-dim)}
+.flag.alt::after{height:12px}
+.nowline{position:absolute;top:-4px;bottom:24px;width:2px;background:var(--red);box-shadow:0 0 8px var(--red)}
+.nowline::before{content:"NOW";position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:10px;color:var(--red)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:6px;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+.tablebox{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:1120px}
+th,td{text-align:left;vertical-align:top;padding:11px 12px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500}
+td.time,td.cost{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.time{color:var(--amber)}
+td.time .fx{display:block;font-size:10.5px;letter-spacing:.1em;color:var(--teal)}
+td.time .clk{display:block;font-size:11px;color:var(--muted)}
+td.notes{color:var(--muted);font-size:14px;max-width:32ch}
+td.drink{font-size:13.5px;color:var(--amber);max-width:22ch}
+tr:last-child td{border-bottom:0}
+.stop{font-weight:600}
+.area{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.pill{display:inline-block;font-size:11.5px;font-family:var(--f-mono);padding:2px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap;color:var(--muted)}
+.pill.mp{border-color:var(--amber);color:var(--amber)}
+.pill.sp{background:var(--amber);border-color:var(--amber);color:var(--amber-ink)}
+.pill.fd{border-color:var(--teal);color:var(--teal)}
+.pill.fx{background:var(--teal);border-color:var(--teal);color:var(--amber-ink)}
+tr.now td{background:var(--amber-soft)}
+tr.now td.time::before{content:"▶ ";color:var(--red)}
+tr.done td,tr.done td.time{color:var(--done)}
+tr.done .stop{text-decoration:line-through}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal)}
+.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.day{display:grid;gap:2px;justify-items:start;min-width:110px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);text-align:left}
+.day b{font-family:var(--f-display);font-weight:600;font-size:16px;color:var(--ink);letter-spacing:.04em;text-transform:uppercase}
+.day small{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em}
+.day[aria-selected="true"]{border-color:var(--amber);background:var(--amber-soft);color:var(--amber)}
+.day[aria-selected="true"] b{color:var(--amber)}
+.day .tag{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+.empty{color:var(--muted);font-size:14px;border:1px dashed var(--line);border-radius:8px;padding:14px;margin:0}
+
+.two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px;align-content:start;min-width:0}
+.rows{display:grid;gap:6px}
+.row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:6px;align-items:baseline}
+.row .amt{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap;display:flex;gap:8px;align-items:center}
+.row small{color:var(--muted)}
+.row.total{border-bottom:0;padding-top:6px;font-weight:600;font-size:17px}
+.row.total .amt{color:var(--amber)}
+
+.box{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:20px}
+@media (max-width:760px){.box{grid-template-columns:1fr}}
+.box form{display:grid;gap:10px}
+.sugg{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.sugg li{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:4px;background:var(--bg2)}
+.sugg .meta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12px;color:var(--muted)}
+.sugg .txt{white-space:pre-wrap;overflow-wrap:anywhere}
+.sugg .reply{font-size:13px;color:var(--teal)}
+.st{font-family:var(--f-mono);font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line)}
+.st.new{color:var(--amber);border-color:var(--amber)}
+.st.done{color:var(--amber-ink);background:var(--teal);border-color:var(--teal)}
+.st.no{color:var(--muted)}
+
+.overlay{position:fixed;inset:0;background:var(--scrim);display:grid;place-items:center;padding:16px;z-index:50}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:min(640px,100%);max-height:calc(100% - 32px);overflow:auto;padding:18px;display:grid;gap:14px;box-sizing:border-box}
+.sheet .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sheet .grid .full{grid-column:1/-1}
+@media (max-width:520px){.sheet .grid{grid-template-columns:1fr}}
+.sheet .field input,.sheet .field select{width:100%}
+.sheet .actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+.sheet .actions div{display:flex;gap:8px;flex-wrap:wrap}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px}
+.foot{color:var(--muted);font-size:13px;max-width:85ch;margin:0}
+@media (max-width:520px){.cell{min-width:68px;padding:8px 10px 6px}}
+</style>
+<style>html,body{margin:0}body{font-family:system-ui,sans-serif}[hidden]{display:none!important}img{max-width:100%}</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  // Paste the config from Firebase (Project settings, Your apps, Web app) here.
+  const FIREBASE_CONFIG = { apiKey: "AIzaSyB9qyZ1tqN8XxN_aSdS1BAfDp-dXX4K__M", authDomain: "batuu-trip.firebaseapp.com", projectId: "batuu-trip", storageBucket: "batuu-trip.firebasestorage.app", messagingSenderId: "945320932304", appId: "1:945320932304:web:3966c1687bcbb6942effd5" };
+</script>
+</head>
+<body>
+
+
+<canvas id="stars" aria-hidden="true"></canvas>
+<header class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">Disney's Hollywood Studios · <b>Black Spire Outpost, Batuu</b></span>
+    <h1>One day on <span>Batuu</span></h1>
+    <p class="lede">A relaxed, all day Galaxy's Edge visit for the crew. Rise of the Resistance, the Millennium Falcon, Tower of Terror, a round at Oga's Cantina, and Fantasmic to close the night. Anyone on the crew can edit the plan below.</p>
+    <div class="count" aria-live="polite">
+      <span class="count-label" id="countLabel">Loading</span>
+      <div class="digits" id="digits"></div>
+      <span class="count-sub" id="countSub"></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="sec" aria-label="Flights">
+    <div class="sec-head"><h2>Hyperspace lanes</h2><div class="right"><button type="button" class="small edit-only" data-add="flights">Add flight</button></div></div>
+    <div class="flights" id="flightList"></div>
+    <p class="empty" id="flightEmpty">No flights logged yet. Add one with the button above.</p>
+  </section>
+
+  <section class="sec" aria-label="Trip days">
+    <div class="sec-head"><h2>Mission days</h2><span class="eyebrow">Pick a day · Orlando time</span></div>
+    <div class="days" id="dayTabs" role="tablist" aria-label="Trip days"></div>
+  </section>
+
+  <section class="timeline" aria-label="Day timeline">
+    <div class="sec-head"><h2 id="dayTitle">The day at a glance</h2><span class="eyebrow">Loose windows</span></div>
+    <div class="track-scroll"><div class="track" id="track"></div></div>
+    <div class="legend">
+      <span><i style="background:#3a4654"></i>Travel</span>
+      <span><i style="background:var(--amber)"></i>Rides</span>
+      <span><i style="background:var(--teal)"></i>Food and drinks</span>
+      <span><i style="background:#7c8a99"></i>Wander</span>
+      <span><i style="background:#b58cf0"></i>Shows</span>
+      <span><i style="background:var(--teal);height:10px"></i>Fixed reservation</span>
+    </div>
+  </section>
+
+  <section class="sec" aria-label="Flight plan">
+    <div class="sec-head"><h2>Mission log</h2><div class="right"><span class="eyebrow">Tap Edit on any stop</span><button type="button" class="small primary edit-only" data-add="stops">Add stop</button></div></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Done</th><th>Window</th><th>Stop</th><th>Access</th><th>Allow</th><th>Est. cost</th><th>Crew drink</th><th>Notes</th><th class="edit-only">Edit</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="stopsEmpty">Nothing planned for this day yet. Add the first stop with the Add stop button.</p>
+  </section>
+
+  <section class="card" aria-label="Cost per person">
+    <div class="sec-head"><h2>Credits per person</h2><div class="right"><label for="party" class="eyebrow">Split shared costs</label><select id="party"><option value="1">1 way</option><option value="2">2 ways</option><option value="3">3 ways</option><option value="4">4 ways</option><option value="5">5 ways</option><option value="6">6 ways</option></select><button type="button" class="small edit-only" data-add="costs">Add cost</button></div></div>
+    <div class="rows" id="ledgerRows"></div>
+    <span class="status" id="settingsMsg" aria-live="polite"></span>
+  </section>
+
+  <section class="card" aria-label="Crew suggestion box">
+    <div class="sec-head"><h2>Holonet suggestion box</h2><div class="right"><span class="eyebrow">Ideas for the crew</span></div></div>
+    
+    <div class="box">
+      <form id="suggForm">
+        <div class="field"><label for="suggName">Your name</label><input type="text" id="suggName" maxlength="40" placeholder="So the crew knows who asked"></div>
+        <div class="field"><label for="suggType">Type</label>
+          <select id="suggType"><option>Add a stop</option><option>Change a time</option><option>Food or drinks</option><option>Swap a ride</option><option>Something else</option></select></div>
+        <div class="field"><label for="suggText">Your suggestion</label>
+          <textarea id="suggText" maxlength="500" placeholder="Example: Can we add the Indiana Jones show before Oga's?"></textarea></div>
+        <button type="submit" class="primary" id="suggSend" style="justify-self:start">Post suggestion</button>
+        <span class="status" id="suggMsg" aria-live="polite">Everyone sees suggestions here. Anyone can edit the plan to make it happen, then mark it done.</span>
+      </form>
+      <div style="display:grid;gap:10px;min-width:0">
+        <ul class="sugg" id="suggList"></ul>
+        <p class="empty" id="suggEmpty">No suggestions yet. Be the first to pitch an idea.</p>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">Prices are estimates and change by date. Sources: <a href="https://www.thrill-data.com/ll/hollywood-studios" target="_blank" rel="noopener">Thrill Data</a> (Multi Pass), <a href="https://wdwprepschool.com/hollywood-studios-lightning-lane-strategy/" target="_blank" rel="noopener">WDW Prep School</a> (Rise Single Pass), <a href="https://wdwprepschool.com/disney-hollywood-studios-bars-lounges/" target="_blank" rel="noopener">WDW Prep School bars guide</a>, <a href="https://disneyworld.disney.go.com/guest-services/parking/" target="_blank" rel="noopener">Disney parking</a>, <a href="https://allears.net/dining/menu/ogas-cantina-wdw/lunch-dinner/" target="_blank" rel="noopener">Oga's Cantina menu</a>. Fan made planner, not affiliated with Disney or Lucasfilm.</p>
+</main>
+
+<div class="overlay" id="overlay" hidden>
+  <form class="sheet" id="sheet" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle">Edit</h2>
+    <div class="grid" id="sheetFields"></div>
+    <span class="status" id="sheetMsg" aria-live="polite"></span>
+    <div class="actions">
+      <div><button type="button" class="danger" id="sheetDelete">Delete</button></div>
+      <div><button type="button" id="sheetCancel">Cancel</button><button type="submit" class="primary" id="sheetSave">Save</button></div>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  const TAX=0.065;
+  const $=id=>document.getElementById(id);
+  const esc=t=>String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const local={get(k,d){try{const v=localStorage.getItem("batuu3:"+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("batuu3:"+k,JSON.stringify(v))}catch(e){}}};
+  let done=local.get("done",{});
+
+  const ACCESS={drive:["Travel",""],park:["Parking",""],sb:["Standby",""],mp:["Multi Pass","mp"],sp:["Single Pass","sp"],mo:["Mobile Order","fd"],fx:["Reservation","fx"],free:["Free time",""],show:["Show",""]};
+  const KINDS={drive:"Travel",ride:"Ride",food:"Food or drinks",free:"Wander",show:"Show"};
+
+  let settings={parkDay:"2026-10-09",party:4,start:"2026-10-07",end:"2026-10-12"};
+  let stops=[], flights=[], costs=[];
+  let curDay=null;
+  let db=null, canWrite=true;
+
+  // Orlando is on EDT (UTC-4) through Nov 1, 2026.
+  const etMs=(d,m)=>Date.parse(d+"T00:00:00-04:00")+m*60000;
+  const clock=m=>{m=((Math.round(m)%1440)+1440)%1440;let h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+String(mm).padStart(2,"0")+" "+ap};
+  const toHHMM=m=>String(Math.floor(m/60)%24).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+  const fromHHMM=v=>{const [h,m]=String(v||"0:0").split(":").map(Number);return (h||0)*60+(m||0)};
+  const addDays=(d,n)=>new Date(Date.parse(d+"T12:00:00Z")+n*86400000).toISOString().slice(0,10);
+  function tripDays(){ const out=[]; let d=settings.start; for(let i=0;i<14&&d<=settings.end;i++){out.push(d);d=addDays(d,1);} return out; }
+  const dayName=d=>new Date(d+"T12:00:00Z").toLocaleDateString([], {weekday:"short",timeZone:"UTC"});
+  const dayDate=d=>new Date(d+"T12:00:00Z").toLocaleDateString([], {month:"short",day:"numeric",timeZone:"UTC"});
+  const stopDay=s=>s.day||settings.parkDay;
+  const dayStops=()=>stops.filter(s=>stopDay(s)===curDay);
+  function pickDay(){ const days=tripDays(); const saved=local.get("day",null); const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/New_York"});
+    curDay=days.includes(curDay)?curDay:days.includes(saved)?saved:days.includes(today)?today:settings.parkDay; }
+  function renderDays(){
+    pickDay();
+    $("dayTabs").innerHTML=tripDays().map(d=>{ const n=stops.filter(s=>stopDay(s)===d).length; const tag=d===settings.parkDay?"Batuu":(flights.some(f=>String(f.depart).slice(0,10)===d||String(f.arrive).slice(0,10)===d)?"Travel":"");
+      return '<button type="button" class="day" role="tab" aria-selected="'+(d===curDay)+'" data-day="'+d+'"><span class="tag">'+(tag||"&nbsp;")+'</span><b>'+dayName(d)+'</b><small>'+dayDate(d)+' · '+n+' stop'+(n===1?"":"s")+'</small></button>'; }).join("");
+    $("dayTitle").textContent=(curDay===settings.parkDay?"Batuu day":dayName(curDay)+", "+dayDate(curDay))+" at a glance";
+  }
+  const money=n=>"$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+
+  /* ---------- rendering ---------- */
+  function renderSettings(){ $("party").value=String(settings.party); }
+
+  function renderFlights(){
+    $("flightEmpty").hidden=flights.length>0;
+    $("flightList").innerHTML=flights.map(f=>{
+      const dep=f.depart?new Date(f.depart):null, arr=f.arrive?new Date(f.arrive):null;
+      const fmt=(dt,tz)=>dt&&!isNaN(dt)?dt.toLocaleString([], {weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZone:tz}):"";
+      return '<article class="flight"><div class="top"><span>'+esc(f.airline)+' '+esc(f.flight)+'</span><button type="button" class="small edit-only" data-edit="flights" data-id="'+esc(f._id)+'">Edit</button></div>'+
+        '<div class="route"><div><div class="code">'+esc(f.from)+'</div><div class="t">'+esc(fmt(dep,f.fromTz||"America/Phoenix"))+'</div></div><div class="line" aria-hidden="true"></div><div style="text-align:right"><div class="code">'+esc(f.to)+'</div><div class="t">'+esc(fmt(arr,f.toTz||"America/New_York"))+'</div></div></div>'+
+        (f.who?'<div class="who">'+esc(f.who)+'</div>':'')+(f.notes?'<div class="who">'+esc(f.notes)+'</div>':'')+'</article>';
+    }).join("");
+    applyWriteState();
+  }
+
+  function renderTable(){
+    const tb=$("tbody"), list=dayStops(); $("stopsEmpty").hidden=list.length>0;
+    tb.innerHTML=list.map(s=>{
+      const a=ACCESS[s.acc]||["",""], key=s._id;
+      return '<tr data-id="'+esc(key)+'"'+(done[key]?' class="done"':'')+'>'+
+        '<td><input type="checkbox" id="chk_'+esc(key)+'" aria-label="Mark '+esc(s.stop)+' done"'+(done[key]?" checked":"")+'></td>'+
+        '<td class="time">'+esc(s.win||clock(s.s))+(s.fixed?'<span class="fx">FIXED</span>':'<span class="clk">about '+clock(s.s)+'</span>')+'</td>'+
+        '<td><span class="stop">'+esc(s.stop)+'</span><span class="area">'+esc(s.area)+'</span></td>'+
+        '<td>'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+'</td>'+
+        '<td>'+esc(s.allow)+'</td><td class="cost">'+esc(s.cost)+'</td><td class="drink">'+esc(s.drink)+'</td><td class="notes">'+esc(s.notes)+'</td>'+
+        '<td class="edit-only"><button type="button" class="small" data-edit="stops" data-id="'+esc(key)+'">Edit</button></td></tr>';
+    }).join("");
+    applyWriteState();
+  }
+
+  function T0(){const l=dayStops();return l.length?Math.min(...l.map(s=>s.s)):420}
+  function T1(){const l=dayStops();return Math.max(T0()+600, ...l.map(s=>s.s+(s.d||30)))}
+  function renderTrack(){
+    const a0=T0(), a1=T1(), pct=m=>((m-a0)/(a1-a0)*100);
+    let html='<div class="rail"></div>';
+    dayStops().forEach(s=>{const a=s.s,b=s.s+(s.d||30); html+='<div class="seg '+esc(s.kind||"free")+(s.fixed?" fixed":"")+'" style="left:'+pct(a)+'%;width:'+Math.max(.4,pct(b)-pct(a))+'%" title="'+esc(s.stop)+'"></div>';});
+    for(let m=Math.ceil(a0/120)*120;m<=a1;m+=120) html+='<span class="tick" style="left:'+pct(m)+'%">'+clock(m).replace(":00","")+'</span>';
+    let alt=false;
+    dayStops().forEach(s=>{ if(["ride","food","show"].includes(s.kind)||s.fixed){ const lbl=s.short||String(s.stop||"").slice(0,14); html+='<span class="flag'+(alt?" alt":"")+(s.fixed?" fixed":"")+'" style="left:'+pct(s.s+(s.d||30)/2)+'%">'+esc(lbl)+'</span>'; alt=!alt; } });
+    html+='<div class="nowline" id="nowline" hidden></div>';
+    $("track").innerHTML=html;
+  }
+
+  // Per person only: per person items count once, shared items split across the crew.
+  function renderLedger(){
+    const p=Math.max(1,+settings.party||1); let html="", total=0;
+    costs.forEach(c=>{
+      const k=(c.taxed?1+TAX:1)/(c.perPerson?1:p), lo=(+c.price||0)*k, hiRaw=+c.priceMax||0, hi=hiRaw>(+c.price||0)?hiRaw*k:0;
+      total+=hi?(lo+hi)/2:lo;
+      const shown=hi?money(lo).replace(/\.\d\d$/,"")+" to "+money(hi).replace(/\.\d\d$/,""):money(lo);
+      html+='<div class="row"><span>'+esc(c.label)+(c.perPerson?'':' <small>split '+p+' ways</small>')+'</span><span class="amt">'+shown+'<button type="button" class="small edit-only" data-edit="costs" data-id="'+esc(c._id)+'">Edit</button></span></div>';
+    });
+    if(!costs.length) html+='<p class="empty">No costs yet. Add one to start the tally.</p>';
+    html+='<div class="row total"><span>Each person pays about</span><span class="amt">~'+money(total).replace(/\.\d\d$/,"")+'</span></div>';
+    html+='<div class="row" style="border:0"><small>Tax included. Food is a range since everyone picks their own; the total uses the middle. Shared costs are split across the crew.</small><span></span></div>';
+    $("ledgerRows").innerHTML=html; applyWriteState();
+  }
+
+  function applyWriteState(){ document.querySelectorAll(".edit-only").forEach(el=>{el.hidden=!db||!canWrite;}); }
+
+  function all(){renderSettings();renderDays();renderFlights();renderTable();renderTrack();renderLedger();tick();}
+
+  /* ---------- countdown ---------- */
+  function setDigits(ms){
+    const s=Math.max(0,Math.floor(ms/1000)),parts=[[Math.floor(s/86400),"days"],[Math.floor(s%86400/3600),"hrs"],[Math.floor(s%3600/60),"min"],[s%60,"sec"]];
+    const box=$("digits"); if(box.children.length!==4) box.innerHTML=parts.map(()=>'<div class="cell"><span class="n"></span><span class="u"></span></div>').join("");
+    parts.forEach(([n,u],i)=>{const c=box.children[i];c.firstChild.textContent=String(n).padStart(2,"0");c.lastChild.textContent=u;});
+  }
+  function events(){
+    const d=settings.parkDay, ev=[];
+    ev.push({at:etMs(d,420)-3*86400000,label:"Lightning Lane booking opens in",sub:"Book Rise of the Resistance first, then Multi Pass."});
+    flights.forEach(f=>{ const t=Date.parse(f.depart); if(!isNaN(t)) ev.push({at:t,label:"Jump to lightspeed in",sub:((f.airline||"")+" "+(f.flight||"")).trim()+" from "+(f.from||"")+" to "+(f.to||"")+"."}); });
+    const pk=stops.filter(s=>stopDay(s)===d);
+    if(pk.length) ev.push({at:etMs(d,pk[0].s),label:"Batuu in",sub:"Roll out around "+clock(pk[0].s)+" Orlando time. No rush."});
+    stops.filter(s=>s.fixed).forEach(s=>ev.push({at:etMs(stopDay(s),s.s-15),label:s.stop+" in",sub:"Fixed at "+clock(s.s)+" on "+dayName(stopDay(s))+". Everything else is flexible."}));
+    return ev.sort((a,b)=>a.at-b.at);
+  }
+  function tick(){
+    const now=Date.now(), d=curDay||settings.parkDay;
+    const next=events().find(e=>e.at>now);
+    if(next){$("countLabel").textContent=next.label;setDigits(next.at-now);$("countSub").textContent=next.sub;}
+    else{$("countLabel").textContent="Mission complete";setDigits(0);$("countSub").textContent="Batuu has been visited. May the Force be with you.";}
+    const a0=etMs(d,T0()), a1=etMs(d,T1()), nl=$("nowline");
+    if(nl){ if(now>=a0&&now<=a1){nl.hidden=false;nl.style.left=((now-a0)/(a1-a0)*100)+"%";} else nl.hidden=true; }
+    document.querySelectorAll("tr.now").forEach(r=>r.classList.remove("now"));
+    if(now>=a0&&now<=a1){ let cur=null; dayStops().forEach(s=>{if(now>=etMs(d,s.s)) cur=s;}); if(cur&&!done[cur._id]){ document.querySelectorAll("tr[data-id]").forEach(r=>{ if(r.dataset.id===cur._id) r.classList.add("now"); }); } }
+  }
+
+  /* ---------- editor ---------- */
+  const SCHEMAS={
+    stops:{title:"stop",fields:[
+      {k:"stop",l:"Stop name",t:"text",full:true,req:true},
+      {k:"day",l:"Day",t:"day"},
+      {k:"s",l:"Start (Orlando time)",t:"time"},{k:"d",l:"Length (minutes)",t:"number"},
+      {k:"win",l:"Window label",t:"text",ph:"Late morning"},{k:"area",l:"Area",t:"text"},
+      {k:"acc",l:"Access",t:"select",opts:Object.fromEntries(Object.entries(ACCESS).map(([k,v])=>[k,v[0]]))},
+      {k:"kind",l:"Timeline color",t:"select",opts:KINDS},
+      {k:"allow",l:"Allow",t:"text"},{k:"cost",l:"Est. cost",t:"text"},
+      {k:"drink",l:"Crew drink",t:"text",full:true},{k:"notes",l:"Notes",t:"textarea",full:true},
+      {k:"short",l:"Timeline label (short)",t:"text"},{k:"fixed",l:"Fixed time reservation",t:"check"}],
+      blank:{day:"",stop:"",s:720,d:30,win:"",area:"",acc:"free",kind:"free",allow:"",cost:"",drink:"",notes:"",short:"",fixed:false}},
+    flights:{title:"flight",fields:[
+      {k:"airline",l:"Airline",t:"text"},{k:"flight",l:"Flight number",t:"text"},
+      {k:"from",l:"From (airport code)",t:"text"},{k:"to",l:"To (airport code)",t:"text"},
+      {k:"depart",l:"Departs (local time at origin)",t:"datetime",tzKey:"fromTz"},{k:"fromTz",l:"Origin time zone",t:"select",opts:{"America/Phoenix":"Arizona","America/New_York":"Florida (Eastern)"}},
+      {k:"arrive",l:"Arrives (local time at destination)",t:"datetime",tzKey:"toTz"},{k:"toTz",l:"Destination time zone",t:"select",opts:{"America/New_York":"Florida (Eastern)","America/Phoenix":"Arizona"}},
+      {k:"who",l:"Who's on it",t:"text",full:true},{k:"notes",l:"Notes",t:"text",full:true}],
+      blank:{airline:"",flight:"",from:"",to:"",depart:"",fromTz:"America/Phoenix",arrive:"",toTz:"America/New_York",who:"",notes:""}},
+    costs:{title:"cost",fields:[
+      {k:"label",l:"What",t:"text",full:true,req:true},{k:"price",l:"Price, or low end of a range ($)",t:"number",step:"0.01"},{k:"priceMax",l:"High end of range (optional)",t:"number",step:"0.01"},
+      {k:"perPerson",l:"Each person pays this (unchecked means shared and split)",t:"check",full:true},{k:"taxed",l:"Add 6.5% tax",t:"check"}],
+      blank:{label:"",price:0,priceMax:0,perPerson:true,taxed:true}}
+  };
+  const OFFS={"America/Phoenix":"-07:00","America/New_York":"-04:00"};
+  function isoToLocalInput(iso,tz){ if(!iso) return ""; const ms=Date.parse(iso); if(isNaN(ms)) return ""; const off=tz==="America/Phoenix"?-7:-4; return new Date(ms+off*3600000).toISOString().slice(0,16); }
+
+  const PARK_ONLY=["sb","mp","sp","mo"];
+  function accessOpts(day){ return Object.entries(ACCESS).filter(([k])=>day===settings.parkDay||!PARK_ONLY.includes(k)).map(([k,v])=>[k,k==="free"&&day!==settings.parkDay?"Open plan":v[0]]); }
+  function kindOpts(day){ return Object.entries(KINDS).map(([k,l])=>[k,k==="ride"&&day!==settings.parkDay?"Activity":l]); }
+  function syncDayFields(){
+    const dSel=$("f_day"), aSel=$("f_acc"), kSel=$("f_kind"); if(!dSel||!aSel||!kSel) return;
+    const day=dSel.value, a=aSel.value, k=kSel.value, opts=accessOpts(day);
+    aSel.innerHTML=opts.map(([v,l])=>'<option value="'+v+'"'+(v===a?" selected":"")+'>'+esc(l)+'</option>').join("");
+    if(!opts.some(([v])=>v===a)) aSel.value="free";
+    kSel.innerHTML=kindOpts(day).map(([v,l])=>'<option value="'+v+'"'+(v===k?" selected":"")+'>'+esc(l)+'</option>').join("");
+    const park=day===settings.parkDay;
+    $("f_area").placeholder=park?"Galaxy's Edge":"Tampa, Ybor City, the beach";
+    $("f_win").placeholder=park?"Late morning":"Evening";
+  }
+  let editing=null, confirmDel=false;
+  function openEditor(col,id){
+    if(!db) return;
+    const sc=SCHEMAS[col]; const list={stops,flights,costs}[col];
+    const item=id?list.find(x=>x._id===id):null;
+    const data=Object.assign({},sc.blank,item||{});
+    if(col==="stops"&&!data.day) data.day=item?stopDay(item):curDay;
+    editing={col,id:item?id:null}; confirmDel=false;
+    $("sheetTitle").textContent=(item?"Edit ":"Add ")+sc.title;
+    $("sheetDelete").hidden=!item; $("sheetDelete").textContent="Delete"; $("sheetMsg").textContent="";
+    $("sheetFields").innerHTML=sc.fields.map(f=>{
+      const fid="f_"+f.k, v=data[f.k];
+      if(f.t==="check") return '<label class="chk'+(f.full?' full':'')+'"><input type="checkbox" id="'+fid+'"'+(v?" checked":"")+'> '+esc(f.l)+'</label>';
+      let input;
+      if(f.t==="textarea") input='<textarea id="'+fid+'" maxlength="600">'+esc(v)+'</textarea>';
+      else if(f.t==="select") input='<select id="'+fid+'">'+Object.entries(f.opts).map(([k,l])=>'<option value="'+esc(k)+'"'+(k===v?" selected":"")+'>'+esc(l)+'</option>').join("")+'</select>';
+      else if(f.t==="day") input='<select id="'+fid+'">'+tripDays().map(d=>'<option value="'+d+'"'+(d===v?" selected":"")+'>'+dayName(d)+", "+dayDate(d)+'</option>').join("")+'</select>';
+      else if(f.t==="time") input='<input type="time" id="'+fid+'" value="'+toHHMM(+v||0)+'">';
+      else if(f.t==="datetime") input='<input type="datetime-local" id="'+fid+'" value="'+esc(isoToLocalInput(v,data[f.tzKey]))+'">';
+      else input='<input type="'+(f.t==="number"?"number":"text")+'" id="'+fid+'"'+(f.step?' step="'+f.step+'"':'')+' maxlength="200" value="'+esc(v)+'"'+(f.ph?' placeholder="'+esc(f.ph)+'"':'')+'>';
+      return '<div class="field'+(f.full?' full':'')+'"><label for="'+fid+'">'+esc(f.l)+'</label>'+input+'</div>';
+    }).join("");
+    if(col==="stops"){ syncDayFields(); $("f_day").addEventListener("change",syncDayFields); }
+    $("overlay").hidden=false; const first=$("sheetFields").querySelector("input,textarea,select"); if(first) first.focus();
+  }
+  function closeEditor(){ $("overlay").hidden=true; editing=null; }
+  function readForm(){
+    const sc=SCHEMAS[editing.col], out={};
+    sc.fields.forEach(f=>{const el=$("f_"+f.k); if(!el) return;
+      if(f.t==="check") out[f.k]=el.checked;
+      else if(f.t==="number") out[f.k]=Number(el.value)||0;
+      else if(f.t==="time") out[f.k]=fromHHMM(el.value);
+      else out[f.k]=el.value.trim();
+    });
+    sc.fields.filter(f=>f.t==="datetime").forEach(f=>{ const v=out[f.k]; out[f.k]=v?(v.length===16?v+":00":v)+(OFFS[out[f.tzKey]]||"-04:00"):""; });
+    return out;
+  }
+  $("sheet").addEventListener("submit",async e=>{
+    e.preventDefault(); if(!editing||!db) return;
+    const sc=SCHEMAS[editing.col], body=readForm();
+    const miss=sc.fields.find(f=>f.req&&!String(body[f.k]||"").trim()); if(miss){$("sheetMsg").textContent=miss.l+" is required.";return;}
+    if(editing.col==="stops") body.order=body.s;
+    if(editing.col==="flights") body.order=Date.parse(body.depart)||0;
+    if(!editing.id&&editing.col==="costs"){ const list=costs; body.order=(list.length?Math.max(...list.map(x=>+x.order||0)):0)+10; }
+    $("sheetSave").disabled=true; $("sheetMsg").textContent="Saving…";
+    try{
+      if(editing.id) await db.collection(editing.col).doc(editing.id).update(body);
+      else await db.collection(editing.col).add(body);
+      closeEditor();
+    }catch(err){ $("sheetMsg").textContent=writeError(err); }
+    $("sheetSave").disabled=false;
+  });
+  $("sheetDelete").addEventListener("click",async()=>{
+    if(!editing||!editing.id||!db) return;
+    if(!confirmDel){confirmDel=true;$("sheetDelete").textContent="Tap again to delete";return;}
+    try{ await db.collection(editing.col).doc(editing.id).delete(); closeEditor(); }catch(err){ $("sheetMsg").textContent=writeError(err); }
+  });
+  $("sheetCancel").addEventListener("click",closeEditor);
+  $("overlay").addEventListener("click",e=>{ if(e.target===$("overlay")) closeEditor(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("overlay").hidden) closeEditor(); });
+  document.addEventListener("click",e=>{
+    const ed=e.target.closest("[data-edit]"); if(ed){openEditor(ed.dataset.edit,ed.dataset.id);return;}
+    const ad=e.target.closest("[data-add]"); if(ad) openEditor(ad.dataset.add,null);
+  });
+  function writeError(err){ return "Couldn't save that. Check your connection and try again."; }
+
+  /* ---------- checklist (per viewer) ---------- */
+  $("tbody").addEventListener("change",e=>{
+    if(e.target.type!=="checkbox") return; const id=e.target.closest("tr").dataset.id;
+    if(e.target.checked) done[id]=true; else delete done[id]; local.set("done",done); renderTable(); tick();
+  });
+
+  /* ---------- shared settings ---------- */
+  let settingsTimer=null;
+  function saveSettings(){
+    settings=Object.assign({},settings,{party:+$("party").value});
+    renderLedger();
+    if(!db) return; clearTimeout(settingsTimer);
+    settingsTimer=setTimeout(async()=>{ try{ await db.doc("settings/trip").set(settings); $("settingsMsg").textContent="Saved for the crew."; }catch(err){ $("settingsMsg").textContent=writeError(err); } },600);
+  }
+  $("party").addEventListener("change",saveSettings);
+  $("dayTabs").addEventListener("click",e=>{const b=e.target.closest("[data-day]"); if(!b) return; curDay=b.dataset.day; local.set("day",curDay); renderDays(); renderTable(); renderTrack(); tick();});
+
+  /* ---------- boot ---------- */
+  all(); setInterval(tick,1000);
+
+  const SEED={"settings": {"trip": {"parkDay": "2026-10-09", "party": 4, "start": "2026-10-07", "end": "2026-10-12"}}, "stops": {"b01": {"acc": "drive", "allow": "1 hr 30 min", "area": "Drive in", "cost": "Gas", "d": 90, "day": "2026-10-09", "drink": "Pregame at the house before rolling out", "fixed": false, "kind": "drive", "notes": "Pregame, then roll out. No rush. Aim to walk in around opening or a bit after.", "order": 450, "s": 450, "short": "Drive", "stop": "Leave the house", "win": "Around 7:30 AM"}, "b02": {"acc": "park", "allow": "20 to 30 min", "area": "Hollywood Studios lot", "cost": "$35 per car", "d": 30, "day": "2026-10-09", "drink": "", "fixed": false, "kind": "drive", "notes": "One car for the crew. Standard parking, tax included.", "order": 540, "s": 540, "short": "Park", "stop": "Park and walk in", "win": "Around 9:00 AM"}, "b03": {"acc": "mp", "allow": "1 hr 15 min", "area": "Sunset Boulevard", "cost": "Multi Pass", "d": 75, "day": "2026-10-09", "drink": "", "fixed": false, "kind": "ride", "notes": "Tower on Multi Pass. Ride the coaster on standby only if the line looks reasonable.", "order": 570, "s": 570, "short": "Sunset Blvd", "stop": "Tower of Terror and Rock 'n' Roller Coaster", "win": "Morning"}, "b04": {"acc": "mp", "allow": "30 min", "area": "Galaxy's Edge", "cost": "Multi Pass", "d": 45, "day": "2026-10-09", "drink": "11:00 · Blue Milk with rum, Milk Stand · ~$17", "fixed": false, "kind": "ride", "notes": "Crew of 4 fills a cockpit: 2 pilots, 2 gunners. New Mandalorian story.", "order": 645, "s": 645, "short": "Falcon", "stop": "Millennium Falcon: Smuggler's Run", "win": "Late morning"}, "b05": {"acc": "sp", "allow": "45 min", "area": "Galaxy's Edge", "cost": "$20 to $25", "d": 60, "day": "2026-10-09", "drink": "", "fixed": false, "kind": "ride", "notes": "The headliner. Book a return time that ends well before 2:30 PM.", "order": 690, "s": 690, "short": "Rise", "stop": "Rise of the Resistance", "win": "Around noon"}, "b06": {"acc": "mo", "allow": "45 to 60 min", "area": "Galaxy's Edge", "cost": "$13 to $19", "d": 60, "day": "2026-10-09", "drink": "12:45 · Surly Sarlacc (vodka) · $14.50", "fixed": false, "kind": "food", "notes": "Everyone picks their own. Mobile Order from Kaadu ribs, fried chicken, Batuuan beef pot roast, tuna poke or the falafel spread. Open seating, indoor AC.", "order": 750, "s": 750, "short": "Lunch", "stop": "Lunch at Docking Bay 7", "win": "Early afternoon"}, "b07": {"acc": "free", "allow": "As long as you like", "area": "Galaxy's Edge", "cost": "Optional", "d": 45, "day": "2026-10-09", "drink": "Water. Eat first.", "fixed": false, "kind": "free", "notes": "Shops, the Falcon photo spot, droids and characters. Stay close to Oga's.", "order": 810, "s": 810, "short": "Wander", "stop": "Wander Galaxy's Edge", "win": "Before Oga's"}, "b08": {"acc": "fx", "allow": "45 min limit", "area": "Galaxy's Edge", "cost": "$19 to $23 a drink", "d": 45, "day": "2026-10-09", "drink": "2:50 and 3:15 · 2 cocktails (max) · ~$42", "fixed": true, "kind": "food", "notes": "Check in from 2:35 PM. ID and booking card required. 2 drinks max each. Umbaran Cheese Roll $13 to share.", "order": 870, "s": 870, "short": "Oga's 2:50", "stop": "Oga's Cantina", "win": "2:50 PM"}, "b09": {"acc": "mp", "allow": "1 hr 30 min", "area": "Echo Lake", "cost": "Multi Pass", "d": 90, "day": "2026-10-09", "drink": "4:30 · Frozen Coke with Jack, Peevy's · $14.50", "fixed": false, "kind": "ride", "notes": "Rebook more Lightning Lanes as you go. Good time to sit in the shade and reset.", "order": 930, "s": 930, "short": "Echo Lake", "stop": "Star Tours and an Indiana Jones show", "win": "Afternoon"}, "b10": {"acc": "free", "allow": "As long as you like", "area": "Anywhere", "cost": "", "d": 60, "day": "2026-10-09", "drink": "Water break", "fixed": false, "kind": "free", "notes": "Repeat a favorite, catch the coaster if the line dropped, or shop.", "order": 1020, "s": 1020, "short": "Free time", "stop": "Free time and second rides", "win": "Late afternoon"}, "b11": {"acc": "mo", "allow": "45 to 60 min", "area": "Galaxy's Edge or Sunset Blvd", "cost": "$15 to $20", "d": 60, "day": "2026-10-09", "drink": "6:00 · Beer with dinner · ~$13", "fixed": false, "kind": "food", "notes": "Everyone picks their own. Docking Bay 7 again or any quick service spot near the Fantasmic theater.", "order": 1080, "s": 1080, "short": "Dinner", "stop": "Dinner", "win": "Around 6:00 PM"}, "b12": {"acc": "free", "allow": "30 min", "area": "Galaxy's Edge", "cost": "", "d": 30, "day": "2026-10-09", "drink": "Last call · Southside Fizz, Sunshine Day Bar · $15.50", "fixed": false, "kind": "free", "notes": "The Falcon lit up at night is the best photo of the day.", "order": 1200, "s": 1200, "short": "Night photos", "stop": "Galaxy's Edge after dark", "win": "Evening"}, "b13": {"acc": "show", "allow": "30 min plus seating", "area": "Hollywood Hills Amphitheater", "cost": "Included", "d": 30, "day": "2026-10-09", "drink": "Done. Water only.", "fixed": false, "kind": "show", "notes": "Check showtime in the app and arrive 30 to 45 min early for good seats.", "order": 1230, "s": 1230, "short": "Fantasmic", "stop": "Fantasmic", "win": "Evening"}, "b14": {"acc": "drive", "allow": "about 1 hr 30 min", "area": "Park exit", "cost": "", "d": 60, "day": "2026-10-09", "drink": "", "fixed": false, "kind": "drive", "notes": "Exit lines are long at close.", "order": 1260, "s": 1260, "short": "Home", "stop": "Drive home", "win": "Park close · 9:00 PM"}, "d08-land": {"acc": "drive", "allow": "30 min", "area": "TPA", "cost": "", "d": 30, "day": "2026-10-08", "drink": "", "fixed": false, "kind": "drive", "notes": "AA 3260 arrives. Coffee, then crash.", "order": 300, "s": 300, "short": "Land", "stop": "Land in Tampa", "win": "5:00 AM"}, "d12-fly": {"acc": "fx", "allow": "Be at TPA by 4:30 PM", "area": "TPA", "cost": "", "d": 30, "day": "2026-10-12", "drink": "", "fixed": true, "kind": "drive", "notes": "AA 1402 to Phoenix.", "order": 1084, "s": 1084, "short": "Fly home", "stop": "Fly home from Tampa", "win": "6:04 PM"}}, "costs": {"c1": {"label": "1 day Hollywood Studios ticket", "order": 10, "perPerson": true, "price": 199, "taxed": true}, "c2": {"label": "Lightning Lane Multi Pass", "order": 20, "perPerson": true, "price": 37, "taxed": true}, "c3": {"label": "Rise of the Resistance Single Pass", "order": 30, "perPerson": true, "price": 22.5, "taxed": true}, "c4": {"label": "Lunch at Docking Bay 7 (your pick)", "order": 40, "perPerson": true, "price": 13, "priceMax": 19, "taxed": true}, "c5": {"label": "Park drinks: 7 over the day (pregame at home not counted)", "order": 50, "perPerson": true, "price": 117.5, "taxed": true}, "c6": {"label": "Oga's: Umbaran Cheese Rolls to share", "order": 60, "perPerson": false, "price": 26, "taxed": true}, "c7": {"label": "Dinner (your pick)", "order": 70, "perPerson": true, "price": 15, "priceMax": 20, "taxed": true}, "c8": {"label": "Parking (one car)", "order": 80, "perPerson": false, "price": 35, "taxed": false}}, "flights": {"home": {"airline": "American", "arrive": "2026-10-12T19:44:00-07:00", "depart": "2026-10-12T18:04:00-04:00", "flight": "AA 1402", "from": "TPA", "fromTz": "America/New_York", "notes": "", "order": 1791842640000, "to": "PHX", "toTz": "America/Phoenix", "who": "The crew"}, "out": {"airline": "American", "arrive": "2026-10-08T05:00:00-04:00", "depart": "2026-10-07T22:05:00-07:00", "flight": "AA 3260", "from": "PHX", "fromTz": "America/Phoenix", "notes": "Red eye. Check in on the American app 24 hours before.", "order": 1791443100000, "to": "TPA", "toTz": "America/New_York", "who": "The crew"}}};
+
+  (async function(){
+    try{
+      if(!window.firebase||FIREBASE_CONFIG.apiKey==="PASTE_ME") throw new Error("no config");
+      firebase.initializeApp(FIREBASE_CONFIG); db=firebase.firestore();
+    }catch(e){
+      db=null; $("stopsEmpty").textContent="The shared plan couldn't load. Refresh the page to try again."; $("flightEmpty").textContent="Flights couldn't load. Refresh to try again.";
+      $("suggSend").disabled=true; applyWriteState(); return;
+    }
+    canWrite=true; applyWriteState();
+    try{ const t=await db.doc("settings/trip").get(); if(!t.exists){ const b=db.batch(); Object.entries(SEED).forEach(([col,docs])=>Object.entries(docs).forEach(([id,data])=>b.set(db.collection(col).doc(id),data))); await b.commit(); } }catch(e){}
+    const sub=(col,fn)=>db.collection(col).orderBy("order","asc").onSnapshot(snap=>{fn(snap.docs.map(x=>Object.assign({_id:x.id},x.data()||{})));},()=>{});
+    sub("stops",v=>{stops=v.map(x=>Object.assign(x,{s:+x.s||0,d:+x.d||30}));renderDays();renderTable();renderTrack();tick();});
+    sub("flights",v=>{flights=v;renderFlights();renderDays();tick();});
+    sub("costs",v=>{costs=v;renderLedger();});
+    db.doc("settings/trip").onSnapshot(snap=>{ if(snap.exists){ settings=Object.assign({},settings,snap.data()); all(); } },()=>{});
+
+    // Suggestion box: shared list anyone can post to and mark done
+    const col=db.collection("suggestions"); let latest=[];
+    const list=$("suggList"), empty=$("suggEmpty"), msg=$("suggMsg"), send=$("suggSend");
+    try{ $("suggName").value=local.get("name",""); }catch(e){}
+    function draw(){
+      empty.hidden=latest.length>0;
+      list.innerHTML=latest.map(d=>{
+        const st=d.status==="done"?["done","Done"]:d.status==="declined"?["no","Not doing"]:["new","New"];
+        const when=d.createdAt?new Date(d.createdAt).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"";
+        return '<li><div class="meta"><span class="st '+st[0]+'">'+st[1]+'</span><span>'+esc(d.type)+'</span><span>'+esc(d.name||"Someone in the crew")+'</span><span>'+esc(when)+'</span><button type="button" class="small" data-sugg="'+esc(d._id)+'">'+(d.status==="done"?"Reopen":"Mark done")+'</button></div><div class="txt">'+esc(d.text)+'</div>'+(d.reply?'<div class="reply">'+esc(d.reply)+'</div>':'')+'</li>';
+      }).join("");
+    }
+    col.orderBy("createdAt","desc").limit(50).onSnapshot(snap=>{latest=snap.docs.map(x=>Object.assign({_id:x.id},x.data()||{}));draw();},()=>{msg.textContent="Couldn't load suggestions right now. Reload the page to try again.";});
+    list.addEventListener("click",async e=>{ const b=e.target.closest("[data-sugg]"); if(!b) return; const d=latest.find(x=>x._id===b.dataset.sugg); if(!d) return; try{ await col.doc(d._id).update({status:d.status==="done"?"new":"done"}); }catch(err){ msg.textContent=writeError(err); } });
+    $("suggForm").addEventListener("submit",async e=>{
+      e.preventDefault(); const text=$("suggText").value.trim(), name=$("suggName").value.trim().slice(0,40);
+      if(!text){msg.textContent="Type a suggestion first.";return;}
+      local.set("name",name); send.disabled=true; msg.textContent="Posting…";
+      try{ await col.add({text,type:$("suggType").value,name,status:"new",reply:"",createdAt:new Date().toISOString()}); $("suggText").value=""; msg.textContent="Posted for the whole crew."; }
+      catch(err){ msg.textContent=writeError(err); }
+      send.disabled=false;
+    });
+  })();
+
+  /* ---------- starfield ---------- */
+  const cv=$("stars"),ctx=cv.getContext("2d");let W=0,H=0,stars=[];
+  const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function size(){const r=cv.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    stars=Array.from({length:Math.round(W*H/2600)},()=>({x:Math.random()*W,y:Math.random()*H,z:Math.random()*0.8+0.2,t:Math.random()*6.28}));}
+  function draw(ts){ctx.clearRect(0,0,W,H);
+    for(const s of stars){if(!reduce){s.x-=s.z*0.15;if(s.x<0)s.x=W;}
+      const a=0.25+0.55*s.z*(0.6+0.4*Math.sin((ts||0)/900+s.t));
+      ctx.fillStyle=s.z>0.9?"rgba(242,165,65,"+a+")":"rgba(220,230,240,"+a+")";ctx.fillRect(s.x,s.y,s.z*1.6,s.z*1.6);}
+    if(!reduce) requestAnimationFrame(draw);}
+  size();draw(0);window.addEventListener("resize",()=>{size();if(reduce)draw(0);});
+})();
+</script>
+
+</body>
+</html>
