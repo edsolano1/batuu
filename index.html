@@ -515,7 +515,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
   }
   function events(){
     const d=settings.parkDay, ev=[];
-    ev.push({at:etMs(d,420)-3*86400000,label:"Lightning Lane booking opens in",sub:"Book Rise of the Resistance first, then Multi Pass."});
+    ev.push({at:etMs(d,420)-3*86400000,label:"Lightning Lane booking opens in",sub:"Book Multi Pass: Smuggler's Run, Tower of Terror, Star Tours."});
     flights.forEach(f=>{ const t=Date.parse(f.depart); if(!isNaN(t)) ev.push({at:t,label:"Jump to lightspeed in",sub:((f.airline||"")+" "+(f.flight||"")).trim()+" from "+(f.from||"")+" to "+(f.to||"")+"."}); });
     const pk=stops.filter(s=>stopDay(s)===d);
     if(pk.length) ev.push({at:etMs(d,pk[0].s),label:"Batuu in",sub:"Roll out around "+clock(pk[0].s)+" Orlando time. No rush."});
@@ -687,6 +687,21 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       b.set(db.collection("stops").doc("b01"),{drink:"",notes:"Roll out. No rush. Aim to walk in around opening or a bit after."},{merge:true});
       b.set(db.collection("stops").doc("b02"),{drink:"Pregame in the parking lot"},{merge:true});
       b.set(db.doc("settings/trip"),{mig1:true},{merge:true});
+      await b.commit(); } }catch(e){}
+    try{ const t=await db.doc("settings/trip").get(); if(t.exists&&!t.data().mig2){
+      const b=db.batch();
+      b.set(db.collection("stops").doc("b01"),{"s": 375, "order": 375, "d": 90, "win": "Around 6:15 AM", "notes": "Early start so we're in line before the park opens for rope drop."},{merge:true});
+      b.set(db.collection("stops").doc("b02"),{"s": 465, "order": 465, "d": 75, "stop": "Park, pregame and line up", "win": "Around 7:45 AM", "allow": "1 hr 15 min", "drink": "Quick pregame in the parking lot", "notes": "Be through security and at the gates by about 8:15. The park opens at 9:00; check exact hours in the app."},{merge:true});
+      b.set(db.collection("stops").doc("b05"),{"s": 540, "order": 540, "d": 60, "win": "Rope drop · 9:00 AM", "acc": "sb", "cost": "Included", "allow": "20 to 30 min wait", "notes": "Head straight to Galaxy's Edge when the park opens. Hotel guests get in 30 min early, so the line will already be moving. No Single Pass needed.", "short": "Rise"},{merge:true});
+      b.set(db.collection("stops").doc("b04"),{"s": 600, "order": 600, "d": 45, "win": "Mid morning", "drink": "10:30 · Blue Milk with rum, Milk Stand · ~$17", "notes": "Multi Pass. Right next to Rise. Crew of 4 fills a cockpit: 2 pilots, 2 gunners. New Mandalorian story."},{merge:true});
+      b.set(db.collection("stops").doc("b03"),{"s": 660, "order": 660, "d": 45, "stop": "Tower of Terror", "area": "Sunset Boulevard", "acc": "mp", "kind": "ride", "win": "Late morning", "allow": "30 min", "cost": "Multi Pass", "drink": "", "notes": "Haunted hotel drop ride. About a 15 min walk from Galaxy's Edge.", "short": "Tower"},{merge:true});
+      b.set(db.collection("stops").doc("b03b"),{"day": "2026-10-09", "s": 705, "order": 705, "d": 45, "stop": "Rock 'n' Roller Coaster", "area": "Sunset Boulevard", "acc": "sb", "kind": "ride", "win": "Before lunch", "allow": "30 to 60 min", "cost": "Included", "drink": "", "notes": "Standby, right next to Tower. Indoor launch coaster with loops, now starring the Muppets. Skip it if the line is long.", "short": "Coaster", "fixed": false},{merge:true});
+      b.set(db.collection("stops").doc("b06"),{"s": 765, "order": 765, "d": 60, "win": "Early afternoon", "drink": "1:00 · Surly Sarlacc (vodka) · $14.50"},{merge:true});
+      b.set(db.collection("stops").doc("b07"),{"s": 825, "order": 825, "d": 25, "win": "Before Oga's"},{merge:true});
+      b.set(db.collection("stops").doc("b09"),{"s": 930, "order": 930, "d": 30, "stop": "Star Tours", "area": "Echo Lake", "acc": "mp", "kind": "ride", "win": "Afternoon", "allow": "20 min", "cost": "Multi Pass", "drink": "4:15 · Frozen Coke with Jack, Peevy's · $14.50", "notes": "Star Wars motion simulator. Rebook more Lightning Lanes after you scan in.", "short": "Star Tours"},{merge:true});
+      b.set(db.collection("stops").doc("b09b"),{"day": "2026-10-09", "s": 975, "order": 975, "d": 40, "stop": "Indiana Jones Epic Stunt Spectacular", "area": "Echo Lake", "acc": "show", "kind": "show", "win": "Afternoon", "allow": "30 min show", "cost": "Included", "drink": "", "notes": "Live stunt show with explosions. Check showtimes in the app. Good shady sit down break.", "short": "Indy show", "fixed": false},{merge:true});
+      b.delete(db.collection("costs").doc("c3"));
+      b.set(db.doc("settings/trip"),{mig2:true},{merge:true});
       await b.commit(); } }catch(e){}
     const sub=(col,fn)=>db.collection(col).orderBy("order","asc").onSnapshot(snap=>{fn(snap.docs.map(x=>Object.assign({_id:x.id},x.data()||{})));},()=>{});
     sub("stops",v=>{stops=v.map(x=>Object.assign(x,{s:+x.s||0,d:+x.d||30}));renderDays();renderTable();renderTrack();tick();});
