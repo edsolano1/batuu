@@ -352,6 +352,8 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
         <div class="field"><label for="suggName">Your name</label><input type="text" id="suggName" maxlength="40" placeholder="So the crew knows who asked"></div>
         <div class="field"><label for="suggType">Type</label>
           <select id="suggType"><option>Add a stop</option><option>Change a time</option><option>Food or drinks</option><option>Swap a ride</option><option>Something else</option></select></div>
+        <div class="field"><label for="suggMode">What should happen?</label>
+          <select id="suggMode"><option value="suggest">Leave it as a suggestion</option><option value="change">Make the change</option></select></div>
         <div class="field"><label for="suggText">Your suggestion</label>
           <textarea id="suggText" maxlength="500" placeholder="Example: Can we add the Indiana Jones show before Oga's?"></textarea></div>
         <button type="submit" class="primary" id="suggSend" style="justify-self:start">Post suggestion</button>
@@ -703,6 +705,34 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       b.delete(db.collection("costs").doc("c3"));
       b.set(db.doc("settings/trip"),{mig2:true},{merge:true});
       await b.commit(); } }catch(e){}
+    // Changes queued by Claude in changes.json are applied once, the first time anyone opens the site after they land
+    try{
+      const res=await fetch("changes.json?ts="+Date.now(),{cache:"no-store"}); const queue=res.ok?await res.json():[];
+      const t=await db.doc("settings/trip").get(); const applied=new Set((t.exists&&t.data().applied)||[]);
+      const todo=(Array.isArray(queue)?queue:[]).filter(c=>c&&c.id&&!applied.has(c.id));
+      if(todo.length){
+        const snap=async col=>(await db.collection(col).get()).docs.map(x=>Object.assign({_id:x.id},x.data()));
+        const live={stops:await snap("stops"),costs:await snap("costs"),flights:await snap("flights")}, sugg=await snap("suggestions");
+        const OK={stops:["day","stop","s","d","win","area","acc","kind","allow","cost","drink","notes","short"],costs:["label","price","priceMax","perPerson","taxed"],flights:["airline","flight","from","to","depart","arrive","fromTz","toTz","who","notes"]};
+        const clean=(col,f)=>{const o={};(OK[col]||[]).forEach(k=>{ if(f&&f[k]!==undefined) o[k]=(typeof f[k]==="string")?f[k].slice(0,300):f[k]; }); if(col==="stops"&&o.s!==undefined){o.s=Math.max(0,Math.min(1439,Math.round(+o.s||0)));o.order=o.s;} if(col==="costs"&&o.price!==undefined) o.price=+o.price||0; return o;};
+        const locked=x=>x&&(x.fixed||/^drive home$/i.test(String(x.stop||"").trim()));
+        const find=(col,op)=>{ const list=live[col]||[]; if(op.id) return list.find(x=>x._id===op.id); const m=op.match||{}; const key=String(m.stop||m.label||"").toLowerCase(); if(!key) return null;
+          return list.find(x=>String(x.stop||x.label||"").toLowerCase()===key&&(!m.day||x.day===m.day))||list.find(x=>String(x.stop||x.label||"").toLowerCase().includes(key)&&(!m.day||x.day===m.day)); };
+        const b=db.batch();
+        todo.forEach(c=>{
+          (c.ops||[]).slice(0,20).forEach(op=>{ const col=op.col||"stops"; if(!OK[col]) return;
+            if(op.op==="add"){ const f=clean(col,op.fields); if(col==="stops"){ if(!f.stop) return; f.day=f.day||settings.parkDay; f.fixed=false; f.acc=f.acc||"free"; f.kind=f.kind||"free"; if(f.s===undefined){f.s=720;f.order=720;} f.d=f.d||30; } if(col==="costs"){ f.order=999; } b.set(db.collection(col).doc(),f); }
+            else { const tgt=find(col,op); if(!tgt||locked(tgt)) return;
+              if(op.op==="update") b.set(db.collection(col).doc(tgt._id),clean(col,op.fields),{merge:true});
+              else if(op.op==="delete") b.delete(db.collection(col).doc(tgt._id)); } });
+          const sg=sugg.find(x=>c.suggestion&&String(x.text||"").trim()===String(c.suggestion).trim()&&x.status!=="done");
+          if(sg) b.set(col0(sg._id),{status:c.status==="declined"?"declined":"done",reply:String(c.reply||"").slice(0,240)},{merge:true});
+        });
+        function col0(id){return db.collection("suggestions").doc(id);}
+        b.set(db.doc("settings/trip"),{applied:firebase.firestore.FieldValue.arrayUnion(...todo.map(c=>c.id))},{merge:true});
+        await b.commit();
+      }
+    }catch(e){ console.warn("changes.json not applied",e); }
     const sub=(col,fn)=>db.collection(col).orderBy("order","asc").onSnapshot(snap=>{fn(snap.docs.map(x=>Object.assign({_id:x.id},x.data()||{})));},()=>{});
     sub("stops",v=>{stops=v.map(x=>Object.assign(x,{s:+x.s||0,d:+x.d||30}));renderDays();renderTable();renderTrack();tick();});
     sub("flights",v=>{flights=v;renderFlights();renderDays();tick();});
@@ -718,7 +748,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       list.innerHTML=latest.map(d=>{
         const st=d.status==="done"?["done","Done"]:d.status==="declined"?["no","Not doing"]:["new","New"];
         const when=d.createdAt?new Date(d.createdAt).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"";
-        return '<li><div class="meta"><span class="st '+st[0]+'">'+st[1]+'</span><span>'+esc(d.type)+'</span><span>'+esc(d.name||"Someone in the crew")+'</span><span>'+esc(when)+'</span><button type="button" class="small" data-sugg="'+esc(d._id)+'">'+(d.status==="done"?"Reopen":"Mark done")+'</button></div><div class="txt">'+esc(d.text)+'</div>'+(d.reply?'<div class="reply">'+esc(d.reply)+'</div>':'')+'</li>';
+        return '<li><div class="meta"><span class="st '+st[0]+'">'+st[1]+'</span><span>'+esc(d.type)+(d.mode==="change"?' · change requested':'')+'</span><span>'+esc(d.name||"Someone in the crew")+'</span><span>'+esc(when)+'</span><button type="button" class="small" data-sugg="'+esc(d._id)+'">'+(d.status==="done"?"Reopen":"Mark done")+'</button></div><div class="txt">'+esc(d.text)+'</div>'+(d.reply?'<div class="reply">'+esc(d.reply)+'</div>':'')+'</li>';
       }).join("");
     }
     col.orderBy("createdAt","desc").limit(50).onSnapshot(snap=>{latest=snap.docs.map(x=>Object.assign({_id:x.id},x.data()||{}));draw();},()=>{msg.textContent="Couldn't load suggestions right now. Reload the page to try again.";});
@@ -727,8 +757,8 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
       e.preventDefault(); const text=$("suggText").value.trim(), name=$("suggName").value.trim().slice(0,40);
       if(!text){msg.textContent="Type a suggestion first.";return;}
       local.set("name",name); send.disabled=true; msg.textContent="Posting…";
-      try{ const type=$("suggType").value; await col.add({text,type,name,status:"new",reply:"",createdAt:new Date().toISOString()}); $("suggText").value=""; msg.textContent="Posted for the whole crew.";
-        fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({access_key:"2532f8e4-9583-4779-a167-e340ef525c5d",subject:"New Batuu idea from "+(name||"the crew"),from_name:"Batuu Planner",name:name||"Someone in the crew",type:type,message:text+"\n\nOpen the planner: https://edsolano1.github.io/batuu/"})}).catch(()=>{}); }
+      try{ const type=$("suggType").value, mode=$("suggMode").value; await col.add({text,type,mode,name,status:"new",reply:"",createdAt:new Date().toISOString()}); $("suggText").value=""; msg.textContent=mode==="change"?"Sent. Claude will make the change within about an hour.":"Posted for the whole crew.";
+        fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({access_key:"2532f8e4-9583-4779-a167-e340ef525c5d",subject:(mode==="change"?"[MAKE CHANGE] ":"[Suggestion] ")+"Batuu idea from "+(name||"the crew"),from_name:"Batuu Planner",name:name||"Someone in the crew",type:type,mode:mode==="change"?"Make the change":"Leave as suggestion",message:text+"\n\nOpen the planner: https://edsolano1.github.io/batuu/"})}).catch(()=>{}); }
       catch(err){ msg.textContent=writeError(err); }
       send.disabled=false;
     });
