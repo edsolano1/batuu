@@ -116,6 +116,13 @@ td.time{color:var(--amber)}
 td.time .fx{display:block;font-size:10.5px;letter-spacing:.1em;color:var(--teal)}
 td.time .clk{display:block;font-size:11px;color:var(--muted)}
 td.notes{color:var(--muted);font-size:14px;max-width:32ch}
+th.skyh{width:30px;padding:0}
+td.tsky{width:30px;padding:0;position:relative;border-bottom:0}
+td.tsky::before{content:"";position:absolute;left:14px;top:0;bottom:0;width:2px;background:linear-gradient(var(--c1),var(--c2));border-radius:1px}
+td.tsky.first::before{top:16px}
+td.tsky.last::before{bottom:auto;height:16px}
+td.tsky i{position:absolute;left:7px;top:12px;width:16px;height:16px;background:var(--panel);border-radius:50%;display:grid;place-items:center}
+td.tsky svg{width:13px;height:13px}
 td.drink{font-size:13.5px;color:var(--amber);max-width:22ch}
 tr:last-child td{border-bottom:0}
 .stop{font-weight:600}
@@ -355,7 +362,7 @@ td.drink .fd{margin-right:6px}
     <div class="sec-head"><h2 id="logTitle">Mission log</h2><div class="right"><span class="eyebrow">Orlando time</span><button type="button" class="small primary edit-only" data-add="stops">Add stop</button></div></div>
     <div class="tablebox">
       <table>
-        <thead><tr><th>Done</th><th>Window</th><th>Stop</th><th>Access</th><th>Allow</th><th>Est. cost</th><th>Food and drinks</th><th>Notes</th><th class="edit-only">Edit</th></tr></thead>
+        <thead><tr><th class="skyh" aria-label="Daylight"></th><th>Done</th><th>Window</th><th>Stop</th><th>Access</th><th>Allow</th><th>Est. cost</th><th>Food and drinks</th><th>Notes</th><th class="edit-only">Edit</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -510,9 +517,10 @@ td.drink .fd{margin-right:6px}
 
   function renderTable(){
     const tb=$("tbody"), list=dayStops(); $("stopsEmpty").hidden=list.length>0;
-    tb.innerHTML=list.map(s=>{
-      const a=ACCESS[s.acc]||["",""], key=s._id;
+    tb.innerHTML=list.map((s,ix)=>{
+      const a=ACCESS[s.acc]||["",""], key=s._id, next=list[ix+1], ph=phase(s.s,curDay), ph2=next?phase(next.s,curDay):ph;
       return '<tr data-id="'+esc(key)+'"'+(done[key]?' class="done"':'')+'>'+
+        '<td class="tsky'+(ix===0?' first':'')+(!next?' last':'')+'" style="--c1:'+SKY[ph]+';--c2:'+SKY[ph2]+'" title="'+ph+'"><i>'+SKY_ICON[ph]+'</i></td>'+
         '<td><input type="checkbox" id="chk_'+esc(key)+'" aria-label="Mark '+esc(s.stop)+' done"'+(done[key]?" checked":"")+'></td>'+
         '<td class="time">'+esc(s.win||clock(s.s))+(s.fixed?'<span class="fx">FIXED</span>':'<span class="clk">about '+clock(s.s)+'</span>')+'</td>'+
         '<td><span class="stop">'+esc(s.stop)+'</span><span class="area">'+esc(s.area)+'</span></td>'+
