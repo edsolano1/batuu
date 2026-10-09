@@ -275,6 +275,7 @@ body[data-active="plan"] [data-view~="plan"],body[data-active="flights"] [data-v
 .fd{display:inline-flex;color:var(--amber)}
 .fd .ico{width:14px;height:14px;margin:0}
 .scard .sub .fd{flex:none}
+td.drink .bar{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
 td.notes .tlink{white-space:nowrap;font-size:12.5px;margin-left:6px}
 .scard dd.links{display:flex;gap:8px;flex-wrap:wrap}
 .scard dd.links a{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;font-size:13px;text-decoration:none;color:var(--amber)}
@@ -468,7 +469,7 @@ td.drink .fd{margin-right:6px}
   const FOOD_ICO='<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2 1-3.5 3.5-3.5 7 0 2 1.5 3 3.5 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>';
   const hasDrink=s=>s.drink===true||(typeof s.drink==="string"&&s.drink.trim()!==""&&!/^(water|done)/i.test(s.drink.trim()));
   const hasFood=s=>s.eat===true||(s.eat===undefined&&(s.kind==="food"||/\b(breakfast|brunch|lunch|dinner|eat|food)\b/i.test(String(s.stop||""))));
-  const fdIcons=s=>(hasFood(s)?'<span class="fd" title="Food here">'+FOOD_ICO+'</span>':'')+(hasDrink(s)?'<span class="fd" title="Drinks here">'+DRINK_ICO+'</span>':'');
+  const fdIcons=s=>(hasFood(s)?'<span class="fd" title="Food here">'+FOOD_ICO+'</span>':'')+(hasDrink(s)?'<span class="fd" title="'+esc(s.bar?"Drinks at "+s.bar:"Drinks here")+'">'+DRINK_ICO+'</span>':'');
   const safeUrl=u=>/^https?:\/\//i.test(String(u||"").trim())?String(u).trim():"";
   const LINK_ICO='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function linkRow(s){ const a=[[safeUrl(s.link),"Website"],[safeUrl(s.menu),"Menu"]].filter(x=>x[0]); if(!a.length) return "";
@@ -529,12 +530,12 @@ td.drink .fd{margin-right:6px}
         '<td class="time">'+esc(s.win||clock(s.s))+(s.fixed?'<span class="fx">FIXED</span>':'<span class="clk">about '+clock(s.s)+'</span>')+'</td>'+
         '<td><span class="stop">'+esc(s.stop)+'</span><span class="area">'+esc(s.area)+'</span></td>'+
         '<td>'+(a[0]?'<span class="pill '+a[1]+'">'+a[0]+'</span>':'')+'</td>'+
-        '<td>'+esc(s.allow)+'</td><td class="cost">'+esc(s.cost)+'</td><td class="drink">'+fdIcons(s)+'</td><td class="notes">'+esc(s.notes)+[[safeUrl(s.link),"Website"],[safeUrl(s.menu),"Menu"]].filter(x=>x[0]).map(x=>' <a class="tlink" href="'+esc(x[0])+'" target="_blank" rel="noopener">'+x[1]+'</a>').join("")+'</td>'+
+        '<td>'+esc(s.allow)+'</td><td class="cost">'+esc(s.cost)+'</td><td class="drink">'+fdIcons(s)+(hasDrink(s)&&s.bar?'<span class="bar">'+esc(s.bar)+'</span>':'')+'</td><td class="notes">'+esc(s.notes)+[[safeUrl(s.link),"Website"],[safeUrl(s.menu),"Menu"]].filter(x=>x[0]).map(x=>' <a class="tlink" href="'+esc(x[0])+'" target="_blank" rel="noopener">'+x[1]+'</a>').join("")+'</td>'+
         '<td class="edit-only"><button type="button" class="small" data-edit="stops" data-id="'+esc(key)+'">Edit</button></td></tr>';
     }).join("");
     $("cardList").innerHTML=list.map((s,ix)=>{
       const a=ACCESS[s.acc]||["",""], key=s._id, next=list[ix+1], ph=phase(s.s,curDay), ph2=next?phase(next.s,curDay):ph;
-      const more=[["Area",s.area,""],["Window",s.win,""],["Allow",s.allow,""],["Cost",s.cost,""],["Notes",s.notes,""]].filter(x=>x[1]);
+      const more=[["Area",s.area,""],["Drinks at",hasDrink(s)?s.bar:"",""],["Window",s.win,""],["Allow",s.allow,""],["Cost",s.cost,""],["Notes",s.notes,""]].filter(x=>x[1]);
       return '<li class="scard'+(done[key]?' done':'')+(s.fixed?' fixed':'')+'" data-id="'+esc(key)+'">'+
         '<div class="sky" style="--c1:'+SKY[ph]+';--c2:'+SKY[ph2]+'" title="'+ph+'"><i>'+SKY_ICON[ph]+'</i></div>'+
         '<details><summary>'+
@@ -616,13 +617,13 @@ td.drink .fd{margin-right:6px}
       {k:"s",l:"Start (local time)",t:"time"},{k:"d",l:"Length (minutes)",t:"number"},
       {k:"area",l:"Area",t:"text"},{k:"kind",l:"Type",t:"select",opts:KINDS},
       {k:"acc",l:"How you get in",t:"select",opts:Object.fromEntries(Object.entries(ACCESS).map(([k,v])=>[k,v[0]]))},
-      {k:"eat",l:"Food here",t:"check"},{k:"drink",l:"Drinks here",t:"check"},
+      {k:"eat",l:"Food here",t:"check"},{k:"drink",l:"Drinks here",t:"check"},{k:"bar",l:"Where to get drinks",t:"text",full:true,ph:"Milk Stand"},
       {k:"notes",l:"Notes",t:"textarea",full:true},
       {k:"link",l:"Website link",t:"text",ph:"https://"},{k:"menu",l:"Menu link",t:"text",ph:"https://"},
       {k:"win",l:"Time note",t:"text",ph:"Late morning"},{k:"allow",l:"Time needed",t:"text",ph:"About 30 min"},
       {k:"cost",l:"Est. cost",t:"text"},{k:"short",l:"Short name on the timeline",t:"text"},
       {k:"fixed",l:"Fixed time reservation",t:"check",full:true}],
-      blank:{day:"",stop:"",s:720,d:30,win:"",area:"",acc:"free",kind:"free",allow:"",cost:"",drink:false,notes:"",short:"",fixed:false,link:"",menu:""}},
+      blank:{day:"",stop:"",s:720,d:30,win:"",area:"",acc:"free",kind:"free",allow:"",cost:"",drink:false,bar:"",notes:"",short:"",fixed:false,link:"",menu:""}},
     flights:{title:"flight",fields:[
       {k:"airline",l:"Airline",t:"text"},{k:"flight",l:"Flight number",t:"text"},
       {k:"from",l:"From (airport code)",t:"text"},{k:"to",l:"To (airport code)",t:"text"},
@@ -888,7 +889,7 @@ td.drink .fd{margin-right:6px}
       if(todo.length){
         const snap=async col=>(await db.collection(col).get()).docs.map(x=>Object.assign({_id:x.id},x.data()));
         const live={stops:await snap("stops"),costs:await snap("costs"),flights:await snap("flights")}, sugg=await snap("suggestions");
-        const OK={stops:["day","stop","s","d","win","area","acc","kind","allow","cost","drink","eat","notes","short","tlabel","link","menu"],costs:["label","price","priceMax","perPerson","taxed"],flights:["airline","flight","from","to","depart","arrive","fromTz","toTz","who","notes"]};
+        const OK={stops:["day","stop","s","d","win","area","acc","kind","allow","cost","drink","eat","bar","notes","short","tlabel","link","menu"],costs:["label","price","priceMax","perPerson","taxed"],flights:["airline","flight","from","to","depart","arrive","fromTz","toTz","who","notes"]};
         const clean=(col,f)=>{const o={};(OK[col]||[]).forEach(k=>{ if(f&&f[k]!==undefined) o[k]=(typeof f[k]==="string")?f[k].slice(0,300):f[k]; }); if(col==="stops"&&o.s!==undefined){o.s=Math.max(0,Math.min(1439,Math.round(+o.s||0)));o.order=o.s;} if(col==="costs"&&o.price!==undefined) o.price=+o.price||0; return o;};
         const locked=x=>x&&(x.fixed||/^drive home$/i.test(String(x.stop||"").trim()));
         const find=(col,op)=>{ const list=live[col]||[]; if(op.id) return list.find(x=>x._id===op.id); const m=op.match||{}; const key=String(m.stop||m.label||"").toLowerCase(); if(!key) return null;
